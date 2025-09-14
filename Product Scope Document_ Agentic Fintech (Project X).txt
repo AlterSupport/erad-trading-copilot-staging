@@ -1,0 +1,50 @@
+﻿Product Scope Document: Agentic Fintech (Project X)
+1. Introduction & Vision
+This document outlines the product scope for Project X, a specialized AI advisory platform designed to serve as an intelligent co-pilot for Erad Partners. The application's core function is to provide personalized, context-aware trade guidance.
+Users achieve this by securely uploading their trading history (blotter), which the AI agent uses as a foundational context to analyze their strategy, risk exposure, and positions. It then synthesizes this personal context with real-time market data and global events to deliver strictly advisory insights through an interactive, conversational interface.
+This product is a custom solution developed exclusively for Erad Partners and is intended for use solely by its executives.
+2. Central Offering: The Personalized AI Trade Advisor
+The entire application is centered around a sophisticated advisory loop. The user provides their data, and the AI provides tailored analysis. This process is the primary feature and value proposition.
+* Step 1: Contextualization via Blotter Upload
+   * The user's journey begins by uploading a trade blotter (a standard CSV or file-based record of their trades, positions, and history).
+   * Security and privacy are paramount. All uploaded data will be encrypted both in transit and at rest, and handled with strict confidentiality.
+* Step 2: AI-Powered Portfolio & Strategy Analysis
+   * Once uploaded, the AI agent parses the blotter to build a deep, private understanding of the user's trading profile. This includes:
+      * Position Analysis: Identifying current holdings, asset concentration, and sector exposure.
+      * Trading Style: Recognizing patterns like holding duration, frequency of trades, and preferred asset types (e.g., equities, crypto, commodities).
+      * Risk Profile: Analyzing historical volatility, drawdown, and win/loss ratios to infer a risk tolerance.
+* Step 3: Proactive, Context-Aware Guidance
+   * The AI agent continuously cross-references the user's analyzed profile with real-time external data (global news, market trends, economic reports).
+   * It then generates highly personalized insights. For example:
+      * "Alert: New sanctions on Country Y were just announced, which may impact your significant holding in XYZ energy stock."
+      * "Insight: Given your portfolio's high concentration in the tech sector, you should be aware of the upcoming semiconductor industry report on Friday."
+      * "Observation: Your recent trades show a trend of selling winners too early. Let's analyze the potential upside you've missed."
+* Step 4: Conversational Deep-Dive & Exploration
+   * Users can engage with the AI in a natural language conversation to explore their profile and the market. They can ask complex, contextual questions that are impossible to ask generic search engines:
+      * "How would a 2% rise in interest rates likely affect my current bond holdings?"
+      * "Based on my blotter, what are my top three portfolio risks right now?"
+      * "Summarize any news from the last 24 hours that is relevant to my open positions."
+3. Supporting Application Features
+All other features are built to support the core advisory function.
+* Secure User & Account Management: Standard, secure user registration, login, and profile management.
+* Advisory Dashboard: A central hub that provides a high-level summary of the AI's analysis, including key portfolio exposures, a watchlist of critical upcoming events, and a feed of the latest high-priority alerts.
+* Blotter Management: An interface for users to upload new blotters, view a history of their uploads, and securely delete their data from the platform at any time.
+4. Technical Architecture
+The platform will be architected as a decoupled client-server web application, designed for security and the intensive data processing required for the AI analysis.
+* Frontend Web Application (Client-Side): A responsive Single-Page Application (SPA) that provides the entire user experience, including the secure file upload interface and the conversational chat window.
+* Backend Services (Server-Side): The secure backend will handle all heavy lifting: parsing uploaded blotters, running analysis routines, managing the AI core, integrating with market data APIs, and generating insights to be sent to the user.
+5. Key Technologies
+The technology stack is selected to enable a secure, performant, and intelligent advisory service.
+* Frontend: Next.js (React), Zustand, Tailwind CSS, and Socket.IO.
+* Backend: Python & FastAPI, with a Modular NLU & AI Core initially powered by Google Gemini Pro but designed to be model-agnostic.
+* Database & Caching: PostgreSQL for structured data and Redis for caching.
+* Deployment & Infrastructure: Docker on Google Cloud Platform (GCP), leveraging services like Cloud Run, Cloud SQL, and secure connections to Vertex AI.
+6. Scope of Work
+* Primary Scope:
+   * Development of the secure blotter upload and parsing engine.
+   * Implementation of the AI analysis routines for portfolio and strategy assessment.
+   * Integration with the LLM (Gemini) to generate conversational insights and alerts.
+   * Building the core conversational user interface.
+* Secondary Scope:
+   * Development of the Advisory Dashboard.
+   * Implementation of user account and blotter management features.
