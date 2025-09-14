@@ -5,10 +5,20 @@ interface LLMServiceConfig {
   timeout: number;
 }
 
+interface ChatMessage {
+  role: string;
+  content: string;
+}
+
 interface ChatRequest {
-  messages: any[];
-  tools?: any[];
-  context?: any;
+  messages: ChatMessage[];
+  tools?: Record<string, unknown>[];
+  context?: Record<string, unknown>;
+}
+
+interface FunctionCall {
+  name: string;
+  arguments: Record<string, unknown>;
 }
 
 interface ChatResponse {
@@ -16,10 +26,7 @@ interface ChatResponse {
   response: {
     type: 'text_response' | 'function_call';
     content?: string;
-    function_call?: {
-      name: string;
-      arguments: any;
-    };
+    function_call?: FunctionCall;
   };
   timestamp: string;
   error?: string;
@@ -56,7 +63,7 @@ export class LLMService {
     }
   }
 
-  async analyzeSentiment(text: string): Promise<any> {
+  async analyzeSentiment(text: string): Promise<unknown> {
     try {
       const response = await fetch(`${this.config.baseUrl}/analyze-sentiment`, {
         method: 'POST',
@@ -79,7 +86,7 @@ export class LLMService {
     }
   }
 
-  async analyzePortfolio(portfolioData: any): Promise<any> {
+  async analyzePortfolio(portfolioData: Record<string, unknown>): Promise<unknown> {
     try {
       const response = await fetch(`${this.config.baseUrl}/analyze-portfolio`, {
         method: 'POST',
@@ -134,10 +141,10 @@ export class CloudAgentOrchestrator {
     this.llmService = llmService;
   }
 
-  async processMessage(userMessage: string, context?: any): Promise<string> {
+  async processMessage(userMessage: string, context?: { previousMessages?: ChatMessage[] }): Promise<string> {
     try {
       // Prepare messages for the LLM service
-      const messages = [
+      const messages: ChatMessage[] = [
         {
           role: 'user',
           content: userMessage
@@ -169,7 +176,7 @@ export class CloudAgentOrchestrator {
         const functionResult = await this.executeFunctionCall(response.response.function_call!);
         
         // Send function result back to LLM for final response
-        const followUpMessages = [
+        const followUpMessages: ChatMessage[] = [
           ...messages,
           {
             role: 'assistant',
@@ -196,7 +203,7 @@ export class CloudAgentOrchestrator {
     }
   }
 
-  private getToolsSchema(): any[] {
+  private getToolsSchema(): Record<string, unknown>[] {
     // Return the schema for available tools
     return [
       {
@@ -240,7 +247,7 @@ export class CloudAgentOrchestrator {
     ];
   }
 
-  private async executeFunctionCall(functionCall: { name: string; arguments: any }): Promise<any> {
+  private async executeFunctionCall(functionCall: FunctionCall): Promise<unknown> {
     // This would execute the actual tool functions
     // For now, we'll return mock data since the tools are already implemented in the agent orchestrator
     const { name, arguments: args } = functionCall;
@@ -251,7 +258,7 @@ export class CloudAgentOrchestrator {
           results: [
             {
               title: `${args.query} - Latest Market Analysis`,
-              url: `https://example.com/search?q=${encodeURIComponent(args.query)}`,
+              url: `https://example.com/search?q=${encodeURIComponent(args.query as string)}`,
               snippet: `Recent analysis shows significant movement in ${args.query} with key indicators pointing to potential opportunities.`
             }
           ]
@@ -259,7 +266,7 @@ export class CloudAgentOrchestrator {
       
       case 'get_asset_prices':
         return {
-          prices: args.symbols.map((symbol: string) => ({
+          prices: (args.symbols as string[]).map((symbol: string) => ({
             symbol,
             price: 100 + Math.random() * 200,
             change: (Math.random() - 0.5) * 10,

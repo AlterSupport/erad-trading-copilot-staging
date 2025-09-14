@@ -24,7 +24,6 @@ export default function ChatInterface() {
         timestamp: 'now',
       }
       addMessage(newMessage)
-      const userInput = inputValue
       setInputValue('')
 
       const typingMessage: Message = {
