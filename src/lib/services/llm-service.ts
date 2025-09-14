@@ -126,7 +126,7 @@ export class LLMService {
 
 // Create and export a configured instance
 const llmService = new LLMService({
-  baseUrl: process.env.NEXT_PUBLIC_LLM_SERVICE_URL || 'http://localhost:8080',
+  baseUrl: 'https://erad-trading-llm-service-4j5sq4ttmq-uc.a.run.app',
   apiKey: process.env.NEXT_PUBLIC_LLM_SERVICE_API_KEY,
   timeout: 30000 // 30 seconds
 });
