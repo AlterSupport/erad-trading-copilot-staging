@@ -87,9 +87,9 @@ export default function ChatInterface() {
         <h4 className='font-semibold text-base sm:text-lg'>Quick Questions</h4>
         <Separator />
         <CardContent className='space-y-3 px-0'>
-          <p className='text-sm sm:text-base'>What is your name?</p>
-          <p className='text-sm sm:text-base'>What is your age?</p>
-          <p className='text-sm sm:text-base'>What is your favorite color?</p>
+          <p className='text-sm sm:text-base'>Summarize the key risks for Societe Generale 4.75% 2029.</p>
+          <p className='text-sm sm:text-base'>What is the current yield on the Deutsche Bank 2.1% 2027?</p>
+          <p className='text-sm sm:text-base'>Compare the credit outlook for Enel SpA and Volkswagen Int.</p>
         </CardContent>
       </Card>
 

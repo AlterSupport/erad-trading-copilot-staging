@@ -10,21 +10,21 @@ export const messagesData: Message[] = [
     id: '1',
     type: 'ai',
     content:
-      "Hello! I've analyzed your blotter and found some interesting patterns. Your portfolio shows a 25% concentration in tech stocks. Would you like me to elaborate on your risk exposure",
+      "Hello! I've analyzed your blotter and found a significant concentration in European corporate bonds. Your portfolio has a 45% allocation to the financial sector. Would you like me to elaborate on your risk exposure?",
     timestamp: '2 min ago',
   },
   {
     id: '2',
     type: 'user',
     content:
-      'Yes, tell me about my tech exposure and any risks I should be aware of',
+      'Yes, tell me more about my exposure to the financial sector and any associated risks.',
     timestamp: '2 min ago',
   },
   {
     id: '3',
     type: 'ai',
     content:
-      'Based on your holdings, you have significant exposure to AAPL (8.2%), MSFT (7.1%). Recent semiconductor restrictions announced today could impact NVDA specifically. I recommend monitoring these positions closely',
+      'Your holdings are concentrated in Societe Generale (15%) and Deutsche Bank (12%). Recent ECB policy shifts could impact these positions. I recommend monitoring for any statements on interest rate adjustments.',
     timestamp: '2 min ago',
   },
 ]

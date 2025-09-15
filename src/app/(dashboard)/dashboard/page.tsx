@@ -30,7 +30,7 @@ import { FileSpreadsheet, TrendingDown, TrendingUp, Zap } from 'lucide-react'
 import { bondData as data } from '@/lib/bond-data'
 
 export default function DashboardPage() {
-  const { files } = useBlotterStore()
+  const { files, selectedFile, selectFile } = useBlotterStore()
 
   return (
     <main className='max-h-full space-y-5'>
@@ -44,12 +44,15 @@ export default function DashboardPage() {
               </Badge>
             </CardTitle>
             <CardDescription>
-              Instant AI-generated recommendations based on current market
-              conditions.
+              AI-powered insights for the Eurobond market.
             </CardDescription>
           </div>
 
-          <Select disabled={files.length === 0}>
+          <Select
+            disabled={files.length === 0}
+            onValueChange={selectFile}
+            value={selectedFile?.name}
+          >
             <SelectTrigger
               size='xl'
               className='lg:w-[250px] md:w-[250px] w-full py-0'
