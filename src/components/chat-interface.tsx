@@ -5,7 +5,8 @@ import { useChatStore } from '@/store/useChatStore'
 import llmService from '@/lib/services/llm-service'
 import { cn } from '@/lib/utils'
 import { Zap } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
+import ReactMarkdown from 'react-markdown'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader } from './ui/card'
 import { Input } from './ui/input'
@@ -14,59 +15,82 @@ import { Separator } from './ui/separator'
 export default function ChatInterface() {
   const { messages, addMessage } = useChatStore()
   const [inputValue, setInputValue] = useState('')
+  const chatContainerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+    }
+  }, [messages])
+
+  const sendMessage = async (content: string) => {
+    if (!content.trim()) return
+
+    const chatHistory = useChatStore
+      .getState()
+      .messages.map((m) => ({
+        role: m.type === 'ai' ? 'model' : 'user',
+        content: m.content,
+      }))
+
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: content,
+      timestamp: 'now',
+    }
+    addMessage(newMessage)
+
+    const typingMessage: Message = {
+      id: `typing_${Date.now()}`,
+      type: 'ai',
+      content: 'Analyzing...',
+      timestamp: 'now',
+    }
+    addMessage(typingMessage)
+
+    try {
+      const response = await llmService.chat(content, chatHistory)
+
+      const { messages } = useChatStore.getState()
+      const filteredMessages = messages.filter(
+        (msg) => msg.id !== typingMessage.id
+      )
+      useChatStore.setState({ messages: filteredMessages })
+
+      const aiResponse: Message = {
+        id: Date.now().toString(),
+        type: 'ai',
+        content: response.fulfillmentText || 'No content received.',
+        timestamp: 'now',
+      }
+      addMessage(aiResponse)
+    } catch (error) {
+      const { messages } = useChatStore.getState()
+      const filteredMessages = messages.filter(
+        (msg) => msg.id !== typingMessage.id
+      )
+      useChatStore.setState({ messages: filteredMessages })
+
+      const errorResponse: Message = {
+        id: Date.now().toString(),
+        type: 'ai',
+        content: `Error: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        timestamp: 'now',
+      }
+      addMessage(errorResponse)
+    }
+  }
 
   const handleSend = async () => {
-    if (inputValue.trim()) {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        type: 'user',
-        content: inputValue,
-        timestamp: 'now',
-      }
-      addMessage(newMessage)
-      setInputValue('')
+    await sendMessage(inputValue)
+    setInputValue('')
+  }
 
-      const typingMessage: Message = {
-        id: `typing_${Date.now()}`,
-        type: 'ai',
-        content: 'Analyzing...',
-        timestamp: 'now',
-      }
-      addMessage(typingMessage)
-
-      try {
-        const chatHistory = useChatStore.getState().messages.map(m => ({ role: m.type, content: m.content }));
-        const response = await llmService.chat({ messages: chatHistory });
-
-        const { messages } = useChatStore.getState()
-        const filteredMessages = messages.filter(msg => msg.id !== typingMessage.id)
-        useChatStore.setState({ messages: filteredMessages })
-
-        if (response.success) {
-          const aiResponse: Message = {
-            id: Date.now().toString(),
-            type: 'ai',
-            content: response.response.content || 'No content received.',
-            timestamp: 'now',
-          }
-          addMessage(aiResponse)
-        } else {
-          throw new Error(response.error || 'Unknown error');
-        }
-      } catch (error) {
-        const { messages } = useChatStore.getState()
-        const filteredMessages = messages.filter(msg => msg.id !== typingMessage.id)
-        useChatStore.setState({ messages: filteredMessages })
-        
-        const errorResponse: Message = {
-          id: Date.now().toString(),
-          type: 'ai',
-          content: `Error: ${error instanceof Error ? error.message : String(error)}`,
-          timestamp: 'now',
-        }
-        addMessage(errorResponse)
-      }
-    }
+  const handleQuickQuestionClick = async (question: string) => {
+    await sendMessage(question)
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -87,9 +111,19 @@ export default function ChatInterface() {
         <h4 className='font-semibold text-base sm:text-lg'>Quick Questions</h4>
         <Separator />
         <CardContent className='space-y-3 px-0'>
-          <p className='text-sm sm:text-base'>Summarize the key risks for Societe Generale 4.75% 2029.</p>
-          <p className='text-sm sm:text-base'>What is the current yield on the Deutsche Bank 2.1% 2027?</p>
-          <p className='text-sm sm:text-base'>Compare the credit outlook for Enel SpA and Volkswagen Int.</p>
+          {[
+            'Summarize the key risks in my blotter.',
+            'What are the latest trends in the European bond market?',
+            'Show me the price for the US 10-Year Treasury.',
+          ].map((question) => (
+            <Card
+              key={question}
+              className='p-2 cursor-pointer hover:bg-muted'
+              onClick={() => handleQuickQuestionClick(question)}
+            >
+              <p className='text-sm sm:text-base'>{question}</p>
+            </Card>
+          ))}
         </CardContent>
       </Card>
 
@@ -107,7 +141,10 @@ export default function ChatInterface() {
         </CardHeader>
 
         <CardContent className='flex flex-col h-full p-0'>
-          <div className='absolute inset-x-0 bottom-[70px] top-[50px] sm:top-[60px] overflow-y-auto px-2 sm:px-4 pt-4 sm:pt-5 pb-20 sm:pb-8 scrollbar-hide'>
+          <div
+            ref={chatContainerRef}
+            className='absolute inset-x-0 bottom-[70px] top-[50px] sm:top-[60px] overflow-y-auto px-2 sm:px-4 pt-4 sm:pt-5 pb-20 sm:pb-8 scrollbar-hide'
+          >
             <div className='space-y-5 sm:space-y-6'>
               {messages.map((message) => (
                 <div key={message.id} className='flex gap-2 sm:gap-3'>
@@ -123,7 +160,9 @@ export default function ChatInterface() {
                         'bg-muted rounded-lg p-2 sm:p-3 inline-block ring ring-border ml-auto'
                     )}
                   >
-                    <p className='text-sm leading-relaxed'>{message.content}</p>
+                    <div className='text-sm leading-relaxed'>
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                    </div>
                     <span className='text-xs text-muted-foreground'>
                       {message.timestamp}
                     </span>

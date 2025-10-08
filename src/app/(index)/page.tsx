@@ -7,21 +7,33 @@ import { Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { signIn } from '@/lib/auth'
+import { useEffect } from 'react'
 
 export default function Home() {
   const router = useRouter()
-  const { showPassword, togglePassword, login } = useAuthStore()
+  const { showPassword, togglePassword, isAuthenticated } = useAuthStore()
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard')
+    }
+  }, [isAuthenticated, router])
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
-    const data = {
-      email: formData.get('email'),
-      password: formData.get('password'),
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
+    try {
+      await signIn(email, password)
+    } catch (error) {
+      console.error(error)
     }
-    console.log(JSON.stringify(data)) // 🔑 Replace with your login logic
-    login()
-    router.push('/dashboard')
+  }
+
+  if (isAuthenticated) {
+    return null
   }
 
   return (

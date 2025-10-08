@@ -5,10 +5,38 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 export default function SettingsPage() {
   const [marketAnalysisNotifications, setMarketAnalysisNotifications] = useState(true)
   const [sensitiveMarketEvents, setSensitiveMarketEvents] = useState(false)
+  const [email, setEmail] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+
+  const handleEmailRegister = async () => {
+    setIsSaving(true)
+    const url = process.env.NEXT_PUBLIC_REGISTER_EMAIL_URL
+    if (!url) {
+      console.error('Email registration URL is not configured.')
+      setIsSaving(false)
+      return
+    }
+    try {
+      await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+      alert('Email registered successfully!')
+    } catch (error) {
+      console.error('Error registering email:', error)
+      alert('Failed to register email.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   return (
     <main className='space-y-5'>
@@ -20,6 +48,21 @@ export default function SettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className='space-y-6'>
+          <div className='space-y-2'>
+            <Label htmlFor='email'>Email for Notifications</Label>
+            <div className='flex gap-2'>
+              <Input
+                id='email'
+                type='email'
+                placeholder='Enter your email'
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <Button onClick={handleEmailRegister} disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save Email'}
+              </Button>
+            </div>
+          </div>
           <div className='flex items-center justify-between p-4 border rounded-md'>
             <div>
               <Label htmlFor='market-analysis' className='font-semibold'>

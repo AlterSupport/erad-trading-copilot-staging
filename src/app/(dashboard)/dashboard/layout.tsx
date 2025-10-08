@@ -11,7 +11,7 @@ export default function DashboardLayout({
     <PrivateRoute>
       <main className='flex flex-col min-h-screen bg-[#F9F9F9]'>
         <NavHeader />
-        <div className='p-4 lg:p-10 '>{children}</div>
+        <div className='flex flex-col flex-grow'>{children}</div>
       </main>
     </PrivateRoute>
   )

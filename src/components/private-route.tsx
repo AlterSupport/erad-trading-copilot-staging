@@ -9,8 +9,8 @@ export default function PrivateRoute({
 }: {
   children: React.ReactNode
 }) {
-  const { isAuthenticated } = useAuthStore()
   const router = useRouter()
+  const { isAuthenticated } = useAuthStore()
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -18,5 +18,5 @@ export default function PrivateRoute({
     }
   }, [isAuthenticated, router])
 
-  return <>{children}</>
+  return isAuthenticated ? <>{children}</> : null
 }

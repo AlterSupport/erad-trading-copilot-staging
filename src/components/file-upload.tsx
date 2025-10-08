@@ -3,7 +3,7 @@
 import { useBlotterStore } from '@/store/useBlotterStore'
 import { cn } from '@/lib/utils'
 import { FileSpreadsheetIcon, Trash2, UploadCloud } from 'lucide-react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 import { Button } from './ui/button'
 import {
@@ -30,9 +30,17 @@ interface FileUploadCompProps {
 }
 
 export default function FileUploadComp({ className }: FileUploadCompProps) {
-  const { addFile, removeFile } = useBlotterStore()
+  const {
+    addFile,
+    removeFile,
+    setAnalysisResult,
+    setError,
+    isUploading,
+    setIsUploading,
+  } = useBlotterStore()
   const [isDragging, setIsDragging] = useState(false)
   const [file, setFile] = useState<File | null>(null)
+  const router = useRouter()
 
   const onDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
@@ -104,6 +112,53 @@ export default function FileUploadComp({ className }: FileUploadCompProps) {
     if (file) {
       removeFile(file.name)
       setFile(null)
+    }
+  }
+
+  const handleUpload = async () => {
+    if (!file) return
+
+    setIsUploading(true)
+    router.push('/dashboard/blotter-analysis')
+
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = async () => {
+      const base64File = reader.result?.toString().split(',')[1]
+      if (!base64File) {
+        alert('Failed to read file.')
+        setIsUploading(false)
+        return
+      }
+
+      const fileType = file.name.split('.').pop()?.toLowerCase()
+
+      try {
+        const response = await fetch('/api/upload-blotter', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fileContent: base64File,
+            fileName: file.name,
+            fileType: fileType,
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to upload blotter.')
+        }
+
+        const result = await response.json()
+        setAnalysisResult(file.name, result)
+        console.log('Blotter upload result:', result)
+      } catch (error: any) {
+        setError(error.message || 'An unknown error occurred.')
+        console.error('Error uploading blotter:', error)
+      } finally {
+        setIsUploading(false)
+      }
     }
   }
 
@@ -187,8 +242,13 @@ export default function FileUploadComp({ className }: FileUploadCompProps) {
             </>
           )}
 
-          <Button size={'lg'} disabled={!file} className='ml-auto flex'>
-            <Link href={'/dashboard/analysis'}>Continue</Link>
+          <Button
+            size={'lg'}
+            disabled={!file || isUploading}
+            className='ml-auto flex'
+            onClick={handleUpload}
+          >
+            {isUploading ? 'Uploading...' : 'Continue'}
           </Button>
         </CardFooter>
       )}

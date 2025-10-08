@@ -5,10 +5,12 @@ import { cn } from '@/lib/utils'
 import {
   FileText,
   LayoutGridIcon,
+  MessageCircle,
   LogOut,
   Menu,
   Settings,
   ShieldCheck,
+  BarChart2,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -17,6 +19,7 @@ import { useState } from 'react'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet'
+import UserProfile from './UserProfile'
 
 const NavItems = [
   {
@@ -25,7 +28,7 @@ const NavItems = [
     icon: <LayoutGridIcon size={15} />,
   },
   {
-    label: 'Blotters',
+    label: 'Blotter Management',
     href: '/dashboard/blotters',
     icon: <FileText size={15} />,
   },
@@ -99,25 +102,7 @@ export default function NavHeader() {
             Erad Partners Exclusive
           </Badge>
 
-          <div className='items-center gap-2 hidden lg:flex'>
-            <Image
-              src={'/portrait.jpg'}
-              alt='User Portrait'
-              width={40}
-              height={40}
-              className='object-cover w-9 h-9 rounded-full ring-1 ring-ring'
-            />
-
-            <div className='flex flex-col'>
-              <span className='font-medium'>John Doe</span>
-              <span className='text-sm font-light text-muted-foreground'>
-                johndoe@example.com
-              </span>
-            </div>
-            <Button variant={'ghost'} size={'icon'} onClick={handleLogout}>
-              <LogOut size={15} />
-            </Button>
-          </div>
+          <UserProfile />
         </div>
       )}
 
@@ -128,21 +113,7 @@ export default function NavHeader() {
         </SheetTrigger>
         <SheetContent side='left' className='w-4/5 md:w-3/5'>
           <div className='flex flex-col gap-6 mt-8'>
-            <div className='flex items-center gap-2 px-2'>
-              <Image
-                src={'/portrait.jpg'}
-                alt='User Portrait'
-                width={40}
-                height={40}
-                className='object-cover w-10 h-10 rounded-full ring-1 ring-ring'
-              />
-              <div className='flex flex-col'>
-                <span className='font-medium'>John Doe</span>
-                <span className='text-sm font-light text-muted-foreground'>
-                  johndoe@example.com
-                </span>
-              </div>
-            </div>
+            <UserProfile mobile />
 
             <nav className='flex flex-col gap-1 px-2'>
               {NavItems.map((item) => (

@@ -1,3 +1,5 @@
+'use client'
+import { useBlotterStore } from '@/store/useBlotterStore'
 import { AlertTriangleIcon } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from './ui/alert'
 import {
@@ -10,6 +12,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
 
 export default function RisksObservations() {
+  const { analysisResults, selectedFile } = useBlotterStore()
+  const analysisResult = selectedFile
+    ? analysisResults[selectedFile.name]
+    : null
+
   return (
     <Tabs defaultValue='risks'>
       <Card className='border-none ring-0 rounded-md shadow'>
@@ -25,71 +32,50 @@ export default function RisksObservations() {
         </CardHeader>
         <CardContent className='space-y-8'>
           <TabsContent value='risks' className='space-y-5'>
-            <Alert
-              variant={'default'}
-              className='border-destructive bg-destructive/5 border-3'
-            >
-              <AlertTriangleIcon color='#E03636' />
-              <AlertTitle className='text-black'>Duration Risk</AlertTitle>
-              <AlertDescription className='text-gray-500'>
-                Portfolio weighted average duration of 12.4 years. Highly
-                senstive to interest rate changes (+50bps = -6.2% impact)
-              </AlertDescription>
-            </Alert>
-
-            <Alert
-              variant={'default'}
-              className='border-[#FF8800] bg-[#FF8800]/10 border-3'
-            >
-              <AlertTriangleIcon color='#FF8800' />
-              <AlertTitle className='text-black'>
-                Credit Spread Widening{' '}
-              </AlertTitle>
-              <AlertDescription className='text-gray-500'>
-                Corporate bonds showing signs of spread expandsion. Monitor
-                credit quality closely.
-              </AlertDescription>
-            </Alert>
+            {analysisResult?.key_risks?.length ? (
+              analysisResult.key_risks.map((risk, index) => (
+                <Alert
+                  key={index}
+                  variant={'default'}
+                  className='border-destructive bg-destructive/5 border-3'
+                >
+                  <AlertTriangleIcon color='#E03636' />
+                  <AlertTitle className='text-black'>{risk.title}</AlertTitle>
+                  <AlertDescription className='text-gray-500'>
+                    {risk.description}
+                  </AlertDescription>
+                </Alert>
+              ))
+            ) : (
+              <p>No key risks to display.</p>
+            )}
           </TabsContent>
 
           <TabsContent value='observations' className='space-y-5'>
-            <Card className='border border-border rounded-md space-y-4'>
-              <CardContent className='space-y-2'>
-                <h3 className='font-medium text-xl'>Consider Duration Hedge</h3>
-                <span className='h-9 w-[150px] px-4 flex justify-center items-center font-semibold uppercase text-xs rounded-md bg-[#AD7D47] text-white'>
-                  Medium Priority
-                </span>
-                <p className='text-ring'>
-                  Reduce treasury concentration, increase investment grade
-                  corporate exposure
-                </p>
-                <div className='flex flex-col lg:flex-row lg:items-center lg:gap-2'>
-                  <h5 className='text-ring'>Expected impact:</h5>
-                  <span className='text-black'>
-                    Improved risk-adjusted returns
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className='border border-border rounded-md space-y-4'>
-              <CardContent className='space-y-2'>
-                <h3 className='font-medium text-xl'>Consider Duration Hedge</h3>
-                <span className='h-9 w-[150px] px-4 flex justify-center items-center font-semibold uppercase text-xs rounded-md bg-[#AD7D47] text-white'>
-                  Medium Priority
-                </span>
-                <p className='text-ring'>
-                  Reduce treasury concentration, increase investment grade
-                  corporate exposure
-                </p>
-                <div className='flex flex-col lg:flex-row lg:items-center lg:gap-2'>
-                  <h5 className='text-ring'>Expected impact:</h5>
-                  <span className='text-black'>
-                    Improved risk-adjusted returns
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+            {analysisResult?.ai_observations?.length ? (
+              analysisResult.ai_observations.map((observation, index) => (
+                <Card
+                  key={index}
+                  className='border border-border rounded-md space-y-4'
+                >
+                  <CardContent className='space-y-2'>
+                    <h3 className='font-medium text-xl'>{observation.title}</h3>
+                    <span className='h-9 w-[150px] px-4 flex justify-center items-center font-semibold uppercase text-xs rounded-md bg-[#AD7D47] text-white'>
+                      {observation.priority}
+                    </span>
+                    <p className='text-ring'>{observation.description}</p>
+                    <div className='flex flex-col lg:flex-row lg:items-center lg:gap-2'>
+                      <h5 className='text-ring'>Expected impact:</h5>
+                      <span className='text-black'>
+                        {observation.expected_impact}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <p>No AI observations to display.</p>
+            )}
           </TabsContent>
         </CardContent>
       </Card>
