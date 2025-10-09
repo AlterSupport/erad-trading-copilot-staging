@@ -31,6 +31,12 @@ export default function PriceAlert() {
     const symbols = [
       'US 10YR',
       'US 30YR',
+      'NIGERIA DEC 2034',
+      'NIGERIA JAN 2049',
+      'NIGERIA SEP 2051',
+      'ANGOLA APR 2032',
+      'ANGOLA MAY 2048',
+      'ANGOLA NOV 2049',
     ]
 
     const fetchPriceAlerts = async () => {

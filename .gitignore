@@ -24,7 +24,7 @@
 .env.production.local
 
 # Unrelated projects
-swyft-v2-master/
+swyft-v2-master/Backend
 
 # Backend code
 cloud-function/
