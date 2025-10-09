@@ -1,4 +1,22 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+
+interface PriceData {
+  date: string
+  price: number
+}
+
+interface NewsArticle {
+  title: string
+  url: string
+  source: string
+  published_at: string
+}
+
+interface Sentiment {
+  score: number
+  label: 'positive' | 'negative' | 'neutral'
+}
 
 interface TradingInsight {
   symbol: string
@@ -8,9 +26,9 @@ interface TradingInsight {
   yield_rate?: number
   final_sell_price?: number
   supporting_data: {
-    price_data: any
-    news: any[]
-    sentiment: any
+    price_data: PriceData[]
+    news: NewsArticle[]
+    sentiment: Sentiment
   }
 }
 
@@ -79,43 +97,51 @@ interface BlotterState {
   setProgress: (progress: number) => void
 }
 
-export const useBlotterStore = create<BlotterState>()((set) => ({
-  files: [],
-  selectedFile: null,
-  isUploading: false,
-  analysisResults: {},
-  error: null,
-  progress: 0,
-  addFile: (file) =>
-    set((state) => ({
-      files: [...state.files, file],
-      selectedFile: file,
-    })),
-  removeFile: (fileName) =>
-    set((state) => {
-      const newFiles = state.files.filter((file) => file.name !== fileName)
-      const newAnalysisResults = { ...state.analysisResults }
-      delete newAnalysisResults[fileName]
-      return {
-        files: newFiles,
-        analysisResults: newAnalysisResults,
-        selectedFile:
-          state.selectedFile?.name === fileName ? null : state.selectedFile,
-      }
-    }),
-  selectFile: (fileName) =>
-    set((state) => ({
-      selectedFile: state.files.find((file) => file.name === fileName) || null,
-    })),
-  setAnalysisResult: (fileName, result) =>
-    set((state) => ({
-      analysisResults: {
-        ...state.analysisResults,
-        [fileName]: result,
-      },
+export const useBlotterStore = create<BlotterState>()(
+  persist(
+    (set) => ({
+      files: [],
+      selectedFile: null,
+      isUploading: false,
+      analysisResults: {},
       error: null,
-    })),
-  setError: (error) => set({ error: error }),
-  setIsUploading: (isUploading) => set({ isUploading }),
-  setProgress: (progress) => set({ progress }),
-}))
+      progress: 0,
+      addFile: (file) =>
+        set((state) => ({
+          files: [...state.files, file],
+          selectedFile: file,
+        })),
+      removeFile: (fileName) =>
+        set((state: BlotterState) => {
+          const newFiles = state.files.filter((file) => file.name !== fileName)
+          const newAnalysisResults = { ...state.analysisResults }
+          delete newAnalysisResults[fileName]
+          return {
+            files: newFiles,
+            analysisResults: newAnalysisResults,
+            selectedFile:
+              state.selectedFile?.name === fileName ? null : state.selectedFile,
+          }
+        }),
+      selectFile: (fileName) =>
+        set((state) => ({
+          selectedFile:
+            state.files.find((file) => file.name === fileName) || null,
+        })),
+      setAnalysisResult: (fileName, result) =>
+        set((state: BlotterState) => ({
+          analysisResults: {
+            ...state.analysisResults,
+            [fileName]: result,
+          },
+          error: null,
+        })),
+      setError: (error: string | null) => set({ error: error }),
+      setIsUploading: (isUploading) => set({ isUploading }),
+      setProgress: (progress) => set({ progress }),
+    }),
+    {
+      name: 'blotter-storage',
+    },
+  ),
+)

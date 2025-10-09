@@ -14,10 +14,8 @@ import {
 } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { useBlotterStore } from '@/store/useBlotterStore'
-import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
-  FileSpreadsheet,
   TrendingDown,
   TrendingUp,
   Zap,
@@ -27,7 +25,6 @@ import PriceAlert from '@/components/price-alert'
 
 export default function DashboardPage() {
   const { analysisResults, selectedFile } = useBlotterStore()
-  const router = useRouter()
   const analysisResult = selectedFile ? analysisResults[selectedFile.name] : null
 
   return (

@@ -2,7 +2,6 @@
 
 import { LogOut, User as UserIcon } from 'lucide-react'
 import { Button } from './ui/button'
-import { useAuthStore } from '@/store/useAuthStore'
 import { useRouter } from 'next/navigation'
 import { signOutUser } from '@/lib/auth'
 

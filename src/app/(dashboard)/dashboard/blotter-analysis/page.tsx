@@ -90,7 +90,7 @@ export default function BlotterAnalysisPage() {
     return () => {
       if (progressInterval) clearInterval(progressInterval)
     }
-  }, [analysisResult, error, isUploading, selectedFile, setProgress])
+  }, [analysisResult, error, isUploading, selectedFile, setProgress, router])
 
   if (analysisResult) {
     return (
@@ -135,7 +135,7 @@ export default function BlotterAnalysisPage() {
         {!analysisResult && currentStage < 3 && (
           <p className='text-ring'>
             Wait while the AI agent parses the blotter to build a deep, private
-            understanding of your user's trading profile.
+            understanding of your user&#39;s trading profile.
           </p>
         )}
         <div className='w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700'>

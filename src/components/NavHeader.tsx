@@ -1,20 +1,16 @@
 'use client'
 
-import { useAuthStore } from '@/store/useAuthStore'
 import { cn } from '@/lib/utils'
 import {
   FileText,
   LayoutGridIcon,
-  MessageCircle,
-  LogOut,
   Menu,
   Settings,
   ShieldCheck,
-  BarChart2,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
@@ -42,13 +38,6 @@ const NavItems = [
 export default function NavHeader() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
-  const { logout } = useAuthStore()
-  const router = useRouter()
-
-  const handleLogout = () => {
-    logout()
-    router.push('/')
-  }
 
   return (
     <header className='h-16 sticky top-0 left-0 z-50 border-b border-border w-full bg-white flex justify-between items-center gap-2 px-4 lg:px-10'>

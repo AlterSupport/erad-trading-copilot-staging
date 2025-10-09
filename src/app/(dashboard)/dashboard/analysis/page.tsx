@@ -71,7 +71,7 @@ export default function AnalysisPage() {
         {!analysisResult && (
           <p className='text-ring'>
             Wait while the AI agent parses the blotter to build a deep, private
-            understanding of your user's trading profile.
+            understanding of your user&#39;s trading profile.
           </p>
         )}
         <Button

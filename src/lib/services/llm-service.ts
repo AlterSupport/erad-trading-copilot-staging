@@ -10,17 +10,6 @@ interface ChatMessage {
   content: string;
 }
 
-interface ChatRequest {
-  messages: ChatMessage[];
-  tools?: Record<string, unknown>[];
-  context?: Record<string, unknown>;
-}
-
-interface FunctionCall {
-  name: string;
-  arguments: Record<string, unknown>;
-}
-
 interface FulfillmentMessage {
   text: {
     text: string[];

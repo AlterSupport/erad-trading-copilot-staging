@@ -153,8 +153,10 @@ export default function FileUploadComp({ className }: FileUploadCompProps) {
         const result = await response.json()
         setAnalysisResult(file.name, result)
         console.log('Blotter upload result:', result)
-      } catch (error: any) {
-        setError(error.message || 'An unknown error occurred.')
+      } catch (error) {
+        if (error instanceof Error) {
+          setError(error.message || 'An unknown error occurred.')
+        }
         console.error('Error uploading blotter:', error)
       } finally {
         setIsUploading(false)

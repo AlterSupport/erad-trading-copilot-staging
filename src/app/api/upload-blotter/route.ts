@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { fileContent, fileName, fileType } = body
+    const { fileContent, fileType } = body
 
     const cloudFunctionUrl = process.env.CLOUD_FUNCTION_URL
     if (!cloudFunctionUrl) {
