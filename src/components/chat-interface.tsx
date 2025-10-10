@@ -101,16 +101,13 @@ export default function ChatInterface() {
   }
 
   return (
-    <>
-      <Card
-        className={cn(
-          'col-span-full border border-border flex flex-col gap-3 px-3 sm:px-4 rounded h-[20vh]',
-          'lg:col-span-1 lg:h-auto'
-        )}
-      >
-        <h4 className='font-semibold text-base sm:text-lg'>Quick Questions</h4>
-        <Separator />
-        <CardContent className='space-y-3 px-0'>
+    <div className='flex flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6 lg:grid lg:grid-cols-3 lg:gap-6'>
+      <Card className='border border-border rounded-lg bg-white lg:col-span-1 lg:sticky lg:top-24'>
+        <CardHeader className='px-4 pt-4 pb-3'>
+          <h4 className='font-semibold text-base sm:text-lg'>Quick Questions</h4>
+        </CardHeader>
+        <Separator className='mx-4' />
+        <CardContent className='flex flex-col gap-3 px-4 py-4'>
           {[
             'Summarize the key risks in my blotter.',
             'What are the latest trends in the European bond market?',
@@ -118,77 +115,74 @@ export default function ChatInterface() {
           ].map((question) => (
             <Card
               key={question}
-              className='p-2 cursor-pointer hover:bg-muted'
+              className='cursor-pointer border border-transparent hover:border-border transition-colors'
               onClick={() => handleQuickQuestionClick(question)}
             >
-              <p className='text-sm sm:text-base'>{question}</p>
+              <CardContent className='px-3 py-2'>
+                <p className='text-sm sm:text-base'>{question}</p>
+              </CardContent>
             </Card>
           ))}
         </CardContent>
       </Card>
 
-      <Card
-        className={cn(
-          'col-span-full border border-border rounded px-3 sm:px-4 flex flex-col relative h-[50vh]',
-          'lg:col-span-2 lg:h-auto'
-        )}
-      >
-        <CardHeader className='flex items-center gap-2 sm:gap-3 h-3 lg:h-9 px-0 flex-shrink-0 bg-white border-b border-border'>
+      <Card className='border border-border rounded-lg bg-white flex flex-col min-h-[60vh] lg:col-span-2'>
+        <CardHeader className='flex flex-row items-center gap-2 sm:gap-3 px-4 py-4 border-b border-border'>
           <div className='flex justify-center items-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black p-1 text-white'>
             <Zap className='w-4 h-4 sm:w-5 sm:h-5' />
           </div>
           <h4 className='font-semibold text-base sm:text-lg'>Trade Advisor</h4>
         </CardHeader>
 
-        <CardContent className='flex flex-col h-full p-0'>
+        <CardContent className='flex flex-col flex-1 px-0'>
           <div
             ref={chatContainerRef}
-            className='absolute inset-x-0 bottom-[70px] top-[50px] sm:top-[60px] overflow-y-auto px-2 sm:px-4 pt-4 sm:pt-5 pb-20 sm:pb-8 scrollbar-hide'
+            className='flex-1 overflow-y-auto px-4 py-4 sm:py-5 space-y-5 sm:space-y-6 scrollbar-hide'
           >
-            <div className='space-y-5 sm:space-y-6'>
-              {messages.map((message) => (
-                <div key={message.id} className='flex gap-2 sm:gap-3'>
-                  {message.type === 'ai' && (
-                    <div className='flex justify-center items-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-black p-1 text-white flex-shrink-0'>
-                      <Zap className='w-3 h-3 sm:w-4 sm:h-4' />
-                    </div>
-                  )}
-                  <div
-                    className={cn(
-                      'w-[85%] sm:w-4/5 space-y-1',
-                      message.type === 'user' &&
-                        'bg-muted rounded-lg p-2 sm:p-3 inline-block ring ring-border ml-auto'
-                    )}
-                  >
-                    <div className='text-sm leading-relaxed'>
-                      <ReactMarkdown>{message.content}</ReactMarkdown>
-                    </div>
-                    <span className='text-xs text-muted-foreground'>
-                      {message.timestamp}
-                    </span>
+            {messages.map((message) => (
+              <div key={message.id} className='flex gap-2 sm:gap-3'>
+                {message.type === 'ai' && (
+                  <div className='flex justify-center items-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-black p-1 text-white flex-shrink-0'>
+                    <Zap className='w-3 h-3 sm:w-4 sm:h-4' />
                   </div>
+                )}
+                <div
+                  className={cn(
+                    'w-[85%] sm:w-4/5 space-y-1',
+                    message.type === 'user' &&
+                      'bg-muted rounded-lg p-2 sm:p-3 inline-block ring ring-border ml-auto'
+                  )}
+                >
+                  <div className='text-sm leading-relaxed'>
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  </div>
+                  <span className='text-xs text-muted-foreground'>
+                    {message.timestamp}
+                  </span>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
 
-          <div className='absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-background'>
-            <Input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder='Ask about your portfolio, market conditions, or trading strategy...'
-              className='h-11 sm:h-12 w-full rounded-3xl pr-14 sm:pr-15 placeholder:text-xs sm:placeholder:text-sm bg-muted'
-            />
-            <Button
-              onClick={handleSend}
-              className='absolute right-6 sm:right-7 top-1/2 transform -translate-y-1/2 h-8 w-8 sm:h-9 sm:w-9 px-3 sm:px-4 rounded-full'
-            >
-              <Zap className='w-3 h-3 sm:w-4 sm:h-4' />
-            </Button>
+          <div className='border-t border-border px-3 sm:px-4 py-3 sm:py-4 bg-background/80'>
+            <div className='relative flex items-center'>
+              <Input
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder='Ask about your portfolio, market conditions, or trading strategy...'
+                className='h-11 sm:h-12 w-full rounded-3xl pr-14 sm:pr-20 placeholder:text-xs sm:placeholder:text-sm bg-muted'
+              />
+              <Button
+                onClick={handleSend}
+                className='absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 h-8 w-8 sm:h-9 sm:w-9 rounded-full'
+              >
+                <Zap className='w-3 h-3 sm:w-4 sm:h-4' />
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
-    </>
+    </div>
   )
 }

@@ -8,7 +8,7 @@ export default function ChatLayout({
 }) {
   return (
     <PrivateRoute>
-      <main className='flex flex-col h-screen bg-[#F9F9F9]'>
+      <main className='flex flex-1 flex-col bg-[#F9F9F9] overflow-x-hidden'>
         {children}
       </main>
     </PrivateRoute>
