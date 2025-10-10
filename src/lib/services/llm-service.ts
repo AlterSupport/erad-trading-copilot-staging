@@ -59,7 +59,7 @@ export class LLMService {
 const llmService = new LLMService({
   baseUrl: process.env.NEXT_PUBLIC_NLU_FUNCTION_URL || '',
   apiKey: process.env.NEXT_PUBLIC_LLM_SERVICE_API_KEY,
-  timeout: 30000 // 30 seconds
+  timeout: Number(process.env.NEXT_PUBLIC_LLM_SERVICE_TIMEOUT_MS || 120000) // default: 120 seconds
 });
 
 export default llmService;

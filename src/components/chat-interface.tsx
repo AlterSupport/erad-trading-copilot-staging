@@ -5,23 +5,72 @@ import { useChatStore } from '@/store/useChatStore'
 import llmService from '@/lib/services/llm-service'
 import { cn } from '@/lib/utils'
 import { Zap } from 'lucide-react'
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Button } from './ui/button'
-import { Card, CardContent, CardHeader } from './ui/card'
-import { Input } from './ui/input'
-import { Separator } from './ui/separator'
+import { Textarea } from './ui/textarea'
+
+const PLACEHOLDER_TIPS = [
+  'Ask for a pricing check on the US 10Y Treasury.',
+  'Summarize today’s blotter-level risk drivers.',
+  'Stress test the portfolio for a 75 bps rates shock.',
+  'Find issuance opportunities that match my mandate.',
+]
 
 export default function ChatInterface() {
   const { messages, addMessage } = useChatStore()
   const [inputValue, setInputValue] = useState('')
+  const [placeholderIndex, setPlaceholderIndex] = useState(0)
   const chatContainerRef = useRef<HTMLDivElement>(null)
+  const bottomMarkerRef = useRef<HTMLDivElement>(null)
+  const isInitialScroll = useRef(true)
+
+  useLayoutEffect(() => {
+    const node = chatContainerRef.current
+    const bottomMarker = bottomMarkerRef.current
+
+    if (!node || !bottomMarker) {
+      return
+    }
+
+    const scrollToBottom = (behavior: ScrollBehavior) => {
+      node.scrollTo({
+        top: node.scrollHeight,
+        behavior,
+      })
+      bottomMarker.scrollIntoView({
+        behavior,
+        block: 'end',
+      })
+      window.requestAnimationFrame(() => {
+        window.scrollTo({
+          top:
+            window.document.documentElement.scrollHeight ||
+            window.document.body.scrollHeight,
+          behavior,
+        })
+      })
+    }
+
+    const behavior = isInitialScroll.current ? 'auto' : 'smooth'
+    scrollToBottom(behavior)
+
+    const timeoutId = window.setTimeout(() => scrollToBottom('auto'), 60)
+    isInitialScroll.current = false
+
+    return () => window.clearTimeout(timeoutId)
+  }, [messages])
 
   useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
-    }
-  }, [messages])
+    if (PLACEHOLDER_TIPS.length <= 1) return
+    if (inputValue.trim()) return
+
+    const interval = window.setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % PLACEHOLDER_TIPS.length)
+    }, 6000)
+
+    return () => window.clearInterval(interval)
+  }, [inputValue])
 
   const sendMessage = async (content: string) => {
     if (!content.trim()) return
@@ -89,100 +138,148 @@ export default function ChatInterface() {
     setInputValue('')
   }
 
-  const handleQuickQuestionClick = async (question: string) => {
-    await sendMessage(question)
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
     }
   }
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!inputValue.trim()) return
+    await handleSend()
+  }
+
+  const activePlaceholder =
+    PLACEHOLDER_TIPS[placeholderIndex] ||
+    'Ask for a pricing check, risk recap, or trade idea...'
+
   return (
-    <div className='flex flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6 lg:grid lg:grid-cols-3 lg:gap-6'>
-      <Card className='border border-border rounded-lg bg-white lg:col-span-1 lg:sticky lg:top-24'>
-        <CardHeader className='px-4 pt-4 pb-3'>
-          <h4 className='font-semibold text-base sm:text-lg'>Quick Questions</h4>
-        </CardHeader>
-        <Separator className='mx-4' />
-        <CardContent className='flex flex-col gap-3 px-4 py-4'>
-          {[
-            'Summarize the key risks in my blotter.',
-            'What are the latest trends in the European bond market?',
-            'Show me the price for the US 10-Year Treasury.',
-          ].map((question) => (
-            <Card
-              key={question}
-              className='cursor-pointer border border-transparent hover:border-border transition-colors'
-              onClick={() => handleQuickQuestionClick(question)}
+    <div className='flex h-full min-h-0 w-full flex-1 items-stretch justify-center overflow-hidden bg-[#F5F7FB] px-4 py-6 sm:px-8'>
+      <div className='flex h-full max-h-full min-h-0 w-full max-w-4xl flex-col overflow-hidden rounded-[28px] border border-border/60 bg-white text-foreground shadow-xl'>
+        <div className='flex h-full min-h-0 flex-col overflow-hidden'>
+          <header className='flex flex-col gap-4 border-b border-border/60 bg-muted/30 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-10 sm:py-6'>
+            <div className='flex items-center gap-3 sm:gap-4'>
+              <div className='relative flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 sm:h-14 sm:w-14'>
+                <Zap className='h-5 w-5 text-primary' />
+                <span className='absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-muted/30 bg-emerald-400'></span>
+              </div>
+              <div>
+                <p className='text-lg font-semibold sm:text-xl'>Trade Advisor</p>
+                <p className='text-xs text-muted-foreground sm:text-sm'>
+                  Ask about markets, manage blotter risk, or ideate trades in seconds.
+                </p>
+              </div>
+            </div>
+            <div className='flex items-center gap-3 text-xs text-muted-foreground sm:text-sm'>
+              <div className='flex items-center gap-2 rounded-full border border-border/60 bg-white px-3 py-1'>
+                <span className='h-2 w-2 rounded-full bg-emerald-400 animate-pulse'></span>
+                <span>Realtime reasoning</span>
+              </div>
+            </div>
+          </header>
+
+          <div className='flex flex-1 min-h-0 flex-col'>
+            <div
+              ref={chatContainerRef}
+              className='flex-1 space-y-6 overflow-y-auto px-5 py-6 sm:px-10 sm:py-8'
             >
-              <CardContent className='px-3 py-2'>
-                <p className='text-sm sm:text-base'>{question}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </CardContent>
-      </Card>
-
-      <Card className='border border-border rounded-lg bg-white flex flex-col min-h-[60vh] lg:col-span-2'>
-        <CardHeader className='flex flex-row items-center gap-2 sm:gap-3 px-4 py-4 border-b border-border'>
-          <div className='flex justify-center items-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black p-1 text-white'>
-            <Zap className='w-4 h-4 sm:w-5 sm:h-5' />
-          </div>
-          <h4 className='font-semibold text-base sm:text-lg'>Trade Advisor</h4>
-        </CardHeader>
-
-        <CardContent className='flex flex-col flex-1 px-0'>
-          <div
-            ref={chatContainerRef}
-            className='flex-1 overflow-y-auto px-4 py-4 sm:py-5 space-y-5 sm:space-y-6 scrollbar-hide'
-          >
-            {messages.map((message) => (
-              <div key={message.id} className='flex gap-2 sm:gap-3'>
-                {message.type === 'ai' && (
-                  <div className='flex justify-center items-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-black p-1 text-white flex-shrink-0'>
-                    <Zap className='w-3 h-3 sm:w-4 sm:h-4' />
+              {messages.length === 0 && (
+                <div className='flex h-full flex-col items-center justify-center gap-4 text-center text-sm text-muted-foreground sm:text-base'>
+                  <div className='flex h-14 w-14 items-center justify-center rounded-2xl border border-dashed border-border/60 bg-muted/50'>
+                    <Zap className='h-6 w-6 text-primary' />
                   </div>
-                )}
+                  <div className='space-y-2'>
+                    <p className='text-lg font-semibold text-foreground'>
+                      Start a smarter conversation
+                    </p>
+                    <p className='mx-auto max-w-sm text-xs text-muted-foreground sm:text-sm'>
+                      Ask about markets, surface portfolio risks, or co-build a strategy. Try asking for a pricing check or a hedge idea to begin.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {messages.map((message) => (
                 <div
+                  key={message.id}
                   className={cn(
-                    'w-[85%] sm:w-4/5 space-y-1',
-                    message.type === 'user' &&
-                      'bg-muted rounded-lg p-2 sm:p-3 inline-block ring ring-border ml-auto'
+                    'flex w-full items-start gap-3 sm:gap-4',
+                    message.type === 'user' && 'flex-row-reverse text-right'
                   )}
                 >
-                  <div className='text-sm leading-relaxed'>
-                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  <div
+                    className={cn(
+                      'flex h-9 w-9 items-center justify-center rounded-full border border-border/60 text-xs font-semibold uppercase text-muted-foreground sm:h-10 sm:w-10',
+                      message.type === 'user'
+                        ? 'bg-primary text-primary-foreground shadow-md'
+                        : 'bg-primary/10 text-primary'
+                    )}
+                  >
+                    {message.type === 'user' ? 'You' : <Zap className='h-4 w-4' />}
                   </div>
-                  <span className='text-xs text-muted-foreground'>
-                    {message.timestamp}
-                  </span>
+                  <div
+                    className={cn(
+                      'relative max-w-[85%] rounded-3xl px-5 py-4 text-sm leading-relaxed shadow-sm sm:max-w-[70%] sm:text-base',
+                      message.type === 'user'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'border border-border/60 bg-muted/40 text-foreground'
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        'prose prose-sm max-w-none text-current sm:prose-base',
+                        'prose-headings:font-semibold prose-headings:text-current prose-p:leading-relaxed prose-strong:text-current prose-a:text-primary'
+                      )}
+                    >
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                    </div>
+                    <span
+                      className={cn(
+                        'mt-3 block text-[11px] font-medium tracking-wide uppercase',
+                        message.type === 'user'
+                          ? 'text-primary-foreground/70'
+                          : 'text-muted-foreground'
+                      )}
+                    >
+                      {message.timestamp}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-
-          <div className='border-t border-border px-3 sm:px-4 py-3 sm:py-4 bg-background/80'>
-            <div className='relative flex items-center'>
-              <Input
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder='Ask about your portfolio, market conditions, or trading strategy...'
-                className='h-11 sm:h-12 w-full rounded-3xl pr-14 sm:pr-20 placeholder:text-xs sm:placeholder:text-sm bg-muted'
-              />
-              <Button
-                onClick={handleSend}
-                className='absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 h-8 w-8 sm:h-9 sm:w-9 rounded-full'
-              >
-                <Zap className='w-3 h-3 sm:w-4 sm:h-4' />
-              </Button>
+              ))}
+              <div ref={bottomMarkerRef} aria-hidden='true' />
             </div>
           </div>
-        </CardContent>
-      </Card>
+
+          <form
+            onSubmit={handleSubmit}
+            className='border-t border-border/60 bg-muted/20 px-5 py-5 sm:px-10 sm:py-6'
+          >
+            <div className='flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4'>
+              <div className='w-full rounded-2xl border border-border/60 bg-white px-4 py-3 shadow-inner focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/60'>
+                <Textarea
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={activePlaceholder}
+                  className='h-24 min-h-[96px] border-0 bg-transparent p-0 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 sm:h-24 sm:text-base'
+                />
+              </div>
+              <Button
+                type='submit'
+                disabled={!inputValue.trim()}
+                className='w-full rounded-2xl px-6 py-3 text-base font-semibold sm:w-auto'
+              >
+                Send
+              </Button>
+            </div>
+            <p className='mt-2 text-[11px] text-muted-foreground sm:mt-3'>
+              Enter to send • Shift + Enter for a new line
+            </p>
+          </form>
+        </div>
+      </div>
     </div>
   )
 }

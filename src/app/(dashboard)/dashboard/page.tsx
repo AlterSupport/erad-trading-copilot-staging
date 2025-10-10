@@ -1,11 +1,9 @@
 'use client'
 
 import BlotterData from '@/components/blotter-data'
-import ChatInterface from '@/components/chat-interface'
 import MarketIntelligence from '@/components/market-intelligence'
 import PriceAlert from '@/components/price-alert'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { useBlotterStore } from '@/store/useBlotterStore'
 import { Upload } from 'lucide-react'
 import { Zap } from 'lucide-react'
@@ -43,15 +41,16 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <Dialog>
-        <DialogTrigger className='fixed bottom-5 right-5 w-14 h-14 rounded-full cursor-pointer shadow-lg text-white flex justify-center items-center bg-primary'>
+      <Button
+        asChild
+        size='icon'
+        className='fixed bottom-6 right-6 h-14 w-14 rounded-full bg-gradient-to-br from-emerald-400 via-sky-500 to-indigo-500 text-white shadow-[0_20px_45px_rgba(56,189,248,0.35)] transition hover:brightness-110 focus-visible:ring-4 focus-visible:ring-emerald-400/40'
+      >
+        <Link href='/dashboard/chat'>
           <Zap />
-        </DialogTrigger>
-
-        <DialogContent className='grid grid-cols-1 lg:grid-cols-3 gap-5 w-full sm:min-w-[90vw] md:min-w-[70vw] h-[80vh] sm:h-[85vh] md:h-[80vh] rounded-md'>
-          <ChatInterface />
-        </DialogContent>
-      </Dialog>
+          <span className='sr-only'>Open Trade Advisor</span>
+        </Link>
+      </Button>
     </main>
   )
 }
