@@ -51,7 +51,7 @@ export default function Home() {
         <div className='relative'>
           <Mail
             size={15}
-            className='absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500'
+            className='absolute left-2 top-1/2 -translate-y-1/2 transform text-muted-foreground'
           />
           <Input
             id='email'
@@ -65,7 +65,7 @@ export default function Home() {
         <div className='relative'>
           <Lock
             size={15}
-            className='absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500'
+            className='absolute left-2 top-1/2 -translate-y-1/2 transform text-muted-foreground'
           />
           <Input
             id='password'
@@ -79,7 +79,7 @@ export default function Home() {
           <button
             type='button'
             onClick={togglePassword}
-            className='absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500'
+            className='absolute right-2 top-1/2 -translate-y-1/2 transform text-muted-foreground'
           >
             {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
           </button>

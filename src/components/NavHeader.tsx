@@ -16,6 +16,7 @@ import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet'
 import UserProfile from './UserProfile'
+import { ThemeToggle } from './theme-toggle'
 
 const NavItems = [
   {
@@ -40,7 +41,7 @@ export default function NavHeader() {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <header className='h-16 sticky top-0 left-0 z-50 border-b border-border w-full bg-white flex justify-between items-center gap-2 px-4 lg:px-10'>
+    <header className='h-16 sticky top-0 left-0 z-50 border-b border-border w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 flex justify-between items-center gap-2 px-4 lg:px-10'>
       <div className='flex items-center gap-4 lg:gap-10'>
         <Link href={'/'} className='flex items-center gap-2'>
           <Image
@@ -51,7 +52,7 @@ export default function NavHeader() {
             className='object-cover'
           />
           {!pathname.startsWith('/dashboard') && (
-            <h1 className='font-semibold'>Project X</h1>
+            <h1 className='font-semibold'>ERP Co-Pilot</h1>
           )}
         </Link>
 
@@ -91,6 +92,7 @@ export default function NavHeader() {
             Erad Partners Exclusive
           </Badge>
 
+          <ThemeToggle className='hidden lg:inline-flex' />
           <UserProfile />
         </div>
       )}
@@ -122,6 +124,13 @@ export default function NavHeader() {
                 </Button>
               ))}
             </nav>
+
+            <div className='flex items-center justify-between px-2'>
+              <span className='text-sm font-medium text-muted-foreground'>
+                Theme
+              </span>
+              <ThemeToggle />
+            </div>
 
             <div className='flex flex-col gap-2 px-2'>
               <Badge className='flex justify-center items-center gap-2 rounded-3xl h-9 w-full text-sm bg-badge-foreground text-badge'>

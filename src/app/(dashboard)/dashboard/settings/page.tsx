@@ -63,12 +63,12 @@ export default function SettingsPage() {
               </Button>
             </div>
           </div>
-          <div className='flex items-center justify-between p-4 border rounded-md'>
+          <div className='flex items-center justify-between rounded-md border border-border p-4'>
             <div>
               <Label htmlFor='market-analysis' className='font-semibold'>
                 Periodic Market Analysis
               </Label>
-              <p className='text-sm text-gray-500'>
+              <p className='text-sm text-muted-foreground'>
                 Receive regular updates and reports on market trends.
               </p>
             </div>
@@ -78,12 +78,12 @@ export default function SettingsPage() {
               onCheckedChange={setMarketAnalysisNotifications}
             />
           </div>
-          <div className='flex items-center justify-between p-4 border rounded-md'>
+          <div className='flex items-center justify-between rounded-md border border-border p-4'>
             <div>
               <Label htmlFor='sensitive-events' className='font-semibold'>
                 Sensitive Market Events
               </Label>
-              <p className='text-sm text-gray-500'>
+              <p className='text-sm text-muted-foreground'>
                 Get instant alerts for critical market news and events.
               </p>
             </div>

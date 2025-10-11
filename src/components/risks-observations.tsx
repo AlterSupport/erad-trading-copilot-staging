@@ -40,8 +40,10 @@ export default function RisksObservations() {
                   className='border-destructive bg-destructive/5 border-3'
                 >
                   <AlertTriangleIcon color='#E03636' />
-                  <AlertTitle className='text-black'>{risk.title}</AlertTitle>
-                  <AlertDescription className='text-gray-500'>
+                  <AlertTitle className='text-foreground'>
+                    {risk.title}
+                  </AlertTitle>
+                  <AlertDescription className='text-muted-foreground'>
                     {risk.description}
                   </AlertDescription>
                 </Alert>
@@ -66,7 +68,7 @@ export default function RisksObservations() {
                     <p className='text-ring'>{observation.description}</p>
                     <div className='flex flex-col lg:flex-row lg:items-center lg:gap-2'>
                       <h5 className='text-ring'>Expected impact:</h5>
-                      <span className='text-black'>
+                      <span className='text-foreground'>
                         {observation.expected_impact}
                       </span>
                     </div>

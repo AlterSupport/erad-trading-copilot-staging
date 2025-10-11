@@ -30,7 +30,7 @@ export default function ForgotPassword() {
         <div className='relative'>
           <Mail
             size={15}
-            className='absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500'
+            className='absolute left-2 top-1/2 -translate-y-1/2 transform text-muted-foreground'
           />
           <Input
             id='email'

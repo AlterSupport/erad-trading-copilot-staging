@@ -49,7 +49,7 @@ export default function BlotterData() {
                 {analysisResult.trading_insights.map((rec) => (
                   <div
                     key={rec.symbol}
-                    className='snap-center flex-none w-[300px] lg:w-[330px] md:w-[330px] bg-white rounded-md p-5 border transform transition duration-300 hover:scale-105 hover:border-black cursor-pointer space-y-4'
+                    className='snap-center flex-none w-[300px] lg:w-[330px] md:w-[330px] rounded-md border bg-card p-5 transform transition duration-300 hover:scale-105 hover:border-foreground/60 cursor-pointer space-y-4'
                   >
                     <div className='flex justify-between items-center gap-5 '>
                       <div className='flex flex-col gap-2 w-2/3'>
@@ -76,7 +76,7 @@ export default function BlotterData() {
                         </span>
                       </div>
                     </div>
-                    <p className='text-sm bg-gray-100 p-2 rounded-md'>
+                    <p className='text-sm rounded-md bg-muted p-2'>
                       {rec.summary}
                     </p>
                     <div className='flex justify-between items-center gap-5'>
@@ -92,7 +92,7 @@ export default function BlotterData() {
                       >
                         {rec.recommendation}
                       </span>
-                      <span className='text-xs text-gray-600 border-2 font-semibold rounded uppercase py-1 px-2'>
+                      <span className='text-xs text-muted-foreground border font-semibold rounded uppercase py-1 px-2'>
                         Confidence level: {rec.confidence}%
                       </span>
                     </div>

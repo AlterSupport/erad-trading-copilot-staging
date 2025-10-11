@@ -27,12 +27,12 @@ export default function DashboardPage() {
       {analysisResult ? (
         <BlotterData />
       ) : (
-        <div className='flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-md'>
-          <Upload className='w-12 h-12 text-gray-400' />
+        <div className='flex flex-col items-center justify-center h-64 border border-dashed rounded-md border-border'>
+          <Upload className='h-12 w-12 text-muted-foreground' />
           <p className='mt-4 text-lg font-semibold'>
             No blotter data to display
           </p>
-          <p className='mt-2 text-sm text-gray-500'>
+          <p className='mt-2 text-sm text-muted-foreground'>
             Upload a blotter to get started
           </p>
           <Button asChild className='mt-4'>

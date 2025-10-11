@@ -27,6 +27,16 @@ export default function PriceAlert() {
   const [alerts, setAlerts] = useState<PriceAlert[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
+  const directionVariants: Record<PriceAlert['direction'], string> = {
+    up: 'border-emerald-200/70 bg-emerald-50/70 dark:border-emerald-400/40 dark:bg-emerald-500/15',
+    down: 'border-rose-200/70 bg-rose-50/70 dark:border-rose-400/40 dark:bg-rose-500/15',
+  }
+
+  const iconVariants: Record<PriceAlert['direction'], string> = {
+    up: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-400/20 dark:text-emerald-200',
+    down: 'bg-rose-100 text-rose-700 dark:bg-rose-400/20 dark:text-rose-200',
+  }
+
   useEffect(() => {
     const symbols = [
       'US 10YR',
@@ -105,52 +115,52 @@ export default function PriceAlert() {
         {!isLoading && alerts.length === 0 && (
           <p>No price alerts found for your portfolio.</p>
         )}
-        {!isLoading && alerts.map((item, index) => (
-          <div
-            key={`${item.id}-${index}`}
-            className={cn(
-              'flex items-center justify-between py-2 px-4 rounded',
-              {
-                'bg-green-50': item.direction === 'up',
-                'bg-red-50': item.direction === 'down',
-              }
-            )}
-          >
-            <div className='flex items-center gap-3'>
-              <div
-                className={cn(
-                  'flex justify-center items-center h-9 w-9 p-1 rounded-full',
-                  {
-                    'bg-green-100 text-green-700': item.direction === 'up',
-                    'bg-red-100 text-red-700': item.direction === 'down',
-                  }
-                )}
-              >
-                {item.direction === 'up' ? (
-                  <TrendingUp className='h-3 w-3 text-green-700' />
-                ) : (
-                  <TrendingDown className='h-3 w-3 text-red-700' />
-                )}
-              </div>
-              <div className='flex flex-col gap-1'>
-                <h4 className='text-sm font-semibold'>{item.name}</h4>
-                <div className='flex items-center gap-2 text-sm text-ring'>
-                  <p className='text-muted-foreground'>
-                    Yield: {item.yield ? item.yield.toFixed(2) + '%' : 'N/A'}
-                  </p>
-                  <div className='h-[20px] w-[1px] border-l border-gray-300' />
-                  <span className=''>{new Date(item.updated).toLocaleTimeString()}</span>
+        {!isLoading &&
+          alerts.map((item, index) => (
+            <div
+              key={`${item.id}-${index}`}
+              className={cn(
+                'flex items-center justify-between rounded-lg border bg-card/80 px-4 py-3 shadow-sm transition-colors',
+                directionVariants[item.direction]
+              )}
+            >
+              <div className='flex items-center gap-3'>
+                <div
+                  className={cn(
+                    'flex h-9 w-9 items-center justify-center rounded-full',
+                    iconVariants[item.direction]
+                  )}
+                >
+                  {item.direction === 'up' ? (
+                    <TrendingUp className='h-4 w-4' />
+                  ) : (
+                    <TrendingDown className='h-4 w-4' />
+                  )}
                 </div>
-                {item.snippets && (
-                  <p className='text-xs text-gray-500 mt-1'>{item.snippets}</p>
-                )}
+                <div className='flex flex-col gap-1'>
+                  <h4 className='text-sm font-semibold text-foreground'>
+                    {item.name}
+                  </h4>
+                  <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+                    <p>
+                      Yield:{' '}
+                      {item.yield ? item.yield.toFixed(2) + '%' : 'N/A'}
+                    </p>
+                    <div className='h-5 w-px border-l border-border/60' />
+                    <span>{new Date(item.updated).toLocaleTimeString()}</span>
+                  </div>
+                  {item.snippets && (
+                    <p className='mt-1 text-xs text-muted-foreground'>
+                      {item.snippets}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className='text-sm font-medium text-foreground'>
+                {item.yield ? item.yield.toFixed(2) + '%' : 'N/A'}
               </div>
             </div>
-            <div className='flex flex-col gap-1 text-sm'>
-              <p className='font-medium'>{item.yield ? item.yield.toFixed(2) + '%' : 'N/A'}</p>
-            </div>
-          </div>
-        ))}
+          ))}
       </CardContent>
     </Card>
   )

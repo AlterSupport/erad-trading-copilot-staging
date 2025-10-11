@@ -77,7 +77,7 @@ export default function AnalysisPage() {
         <Button
           variant={'secondary'}
           size={'lg'}
-          className='bg-white ring ring-border shadow-md'
+          className='ring ring-border shadow-md'
           onClick={() => router.push('/dashboard/upload-blotter')}
         >
           Cancel

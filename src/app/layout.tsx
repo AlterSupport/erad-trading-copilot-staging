@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import AuthProvider from '@/components/auth-provider'
+import { ThemeProvider, THEME_STORAGE_KEY } from '@/components/theme-provider'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -21,17 +22,51 @@ export const metadata: Metadata = {
   },
 }
 
+const themeScript = `
+;(function () {
+  const storageKey = '${THEME_STORAGE_KEY}'
+  let theme = 'light'
+
+  try {
+    const stored =
+      typeof window !== 'undefined' ? window.localStorage.getItem(storageKey) : null
+    const prefersDark =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+
+    if (stored === 'light' || stored === 'dark') {
+      theme = stored
+    } else if (prefersDark) {
+      theme = 'dark'
+    }
+  } catch (error) {
+    theme = 'light'
+  }
+
+  const root = document.documentElement
+  root.classList.remove('light', 'dark')
+  root.classList.add(theme)
+  root.style.colorScheme = theme
+})()
+`
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang='en'>
+    <html lang='en' className='light' suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

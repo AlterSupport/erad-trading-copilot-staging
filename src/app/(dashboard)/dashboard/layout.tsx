@@ -9,7 +9,7 @@ export default function DashboardLayout({
 }) {
   return (
     <PrivateRoute>
-      <main className='flex flex-col min-h-screen bg-[#F9F9F9]'>
+      <main className='flex min-h-screen flex-col bg-background'>
         <NavHeader />
         <div className='flex flex-col flex-grow min-h-0'>{children}</div>
       </main>

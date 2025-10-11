@@ -25,6 +25,21 @@ export default function MarketIntelligence() {
   const [events, setEvents] = useState<MarketEvent[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
+  const sentimentVariants: Record<MarketEvent['sentiment'], string> = {
+    POSITIVE:
+      'border-emerald-200/70 bg-emerald-50/80 dark:border-emerald-400/40 dark:bg-emerald-500/15',
+    NEGATIVE:
+      'border-rose-200/70 bg-rose-50/80 dark:border-rose-400/40 dark:bg-rose-500/15',
+    NEUTRAL:
+      'border-border/70 bg-muted/70 dark:border-border/40 dark:bg-muted/20',
+  }
+
+  const sentimentText: Record<MarketEvent['sentiment'], string> = {
+    POSITIVE: 'text-emerald-700 dark:text-emerald-200',
+    NEGATIVE: 'text-rose-700 dark:text-rose-200',
+    NEUTRAL: 'text-muted-foreground',
+  }
+
   useEffect(() => {
     const fetchMarketNews = async () => {
       setIsLoading(true)
@@ -148,37 +163,45 @@ export default function MarketIntelligence() {
           {!isLoading && events.length === 0 && (
             <p className="col-span-full">No market events found for your portfolio.</p>
           )}
-          {!isLoading && events.map((event, index) => (
-            <div
-              key={index}
-              className={cn(
-                'p-4 rounded-md border',
-                {
-                  'bg-green-50 border-green-200': event.sentiment === 'POSITIVE',
-                  'bg-red-50 border-red-200': event.sentiment === 'NEGATIVE',
-                }
-              )}
-            >
-              <h4 className='font-semibold'>{event.event_title}</h4>
-              <p className='text-sm text-muted-foreground mt-1'>
-                {event.summary}
-              </p>
-              <p className='text-sm mt-2'>
-                <strong>Sentiment:</strong> {event.sentiment}
-              </p>
-              <p className='text-sm mt-1'>
-                <strong>Trading Impact:</strong> {event.trading_impact}
-              </p>
-              <a
-                href={event.source_url}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='text-xs text-blue-500 hover:underline mt-2 block'
+          {!isLoading &&
+            events.map((event, index) => (
+              <div
+                key={index}
+                className={cn(
+                  'rounded-xl border bg-card/80 p-4 shadow-sm transition-colors',
+                  sentimentVariants[event.sentiment]
+                )}
               >
-                Source
-              </a>
-            </div>
-          ))}
+                <h4 className='font-semibold text-foreground'>
+                  {event.event_title}
+                </h4>
+                <p className='mt-1 text-sm text-muted-foreground'>
+                  {event.summary}
+                </p>
+                <p className='mt-3 text-sm'>
+                  <span className='font-semibold text-foreground'>
+                    Sentiment:{' '}
+                  </span>
+                  <span className={sentimentText[event.sentiment]}>
+                    {event.sentiment}
+                  </span>
+                </p>
+                <p className='mt-1 text-sm text-foreground'>
+                  <span className='font-semibold'>Trading Impact:</span>{' '}
+                  <span className='text-muted-foreground'>
+                    {event.trading_impact}
+                  </span>
+                </p>
+                <a
+                  href={event.source_url}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='mt-3 block text-xs font-medium text-primary hover:underline'
+                >
+                  Source
+                </a>
+              </div>
+            ))}
         </div>
       </CardContent>
     </Card>

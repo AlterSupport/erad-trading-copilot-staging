@@ -156,8 +156,8 @@ export default function ChatInterface() {
     'Ask for a pricing check, risk recap, or trade idea...'
 
   return (
-    <div className='flex h-full min-h-0 w-full flex-1 items-stretch justify-center overflow-hidden bg-[#F5F7FB] px-4 py-6 sm:px-8'>
-      <div className='flex h-full max-h-full min-h-0 w-full max-w-4xl flex-col overflow-hidden rounded-[28px] border border-border/60 bg-white text-foreground shadow-xl'>
+    <div className='flex h-full min-h-0 w-full flex-1 items-stretch justify-center overflow-hidden bg-muted/40 px-4 py-6 dark:bg-background sm:px-8'>
+      <div className='flex h-full max-h-full min-h-0 w-full max-w-4xl flex-col overflow-hidden rounded-[28px] border border-border/60 bg-card text-foreground shadow-xl'>
         <div className='flex h-full min-h-0 flex-col overflow-hidden'>
           <header className='flex flex-col gap-4 border-b border-border/60 bg-muted/30 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-10 sm:py-6'>
             <div className='flex items-center gap-3 sm:gap-4'>
@@ -173,7 +173,7 @@ export default function ChatInterface() {
               </div>
             </div>
             <div className='flex items-center gap-3 text-xs text-muted-foreground sm:text-sm'>
-              <div className='flex items-center gap-2 rounded-full border border-border/60 bg-white px-3 py-1'>
+            <div className='flex items-center gap-2 rounded-full border border-border/60 bg-background px-3 py-1'>
                 <span className='h-2 w-2 rounded-full bg-emerald-400 animate-pulse'></span>
                 <span>Realtime reasoning</span>
               </div>
@@ -257,7 +257,7 @@ export default function ChatInterface() {
             className='border-t border-border/60 bg-muted/20 px-5 py-5 sm:px-10 sm:py-6'
           >
             <div className='flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4'>
-              <div className='w-full rounded-2xl border border-border/60 bg-white px-4 py-3 shadow-inner focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/60'>
+              <div className='w-full rounded-2xl border border-border/60 bg-background px-4 py-3 shadow-inner focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/60'>
                 <Textarea
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}

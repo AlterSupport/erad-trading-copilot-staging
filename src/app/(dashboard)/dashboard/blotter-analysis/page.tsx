@@ -138,7 +138,7 @@ export default function BlotterAnalysisPage() {
             understanding of your user&#39;s trading profile.
           </p>
         )}
-        <div className='w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700'>
+        <div className='w-full rounded-full h-2.5 bg-muted'>
           <div
             className='bg-blue-600 h-2.5 rounded-full'
             style={{ width: `${progress}%` }}
@@ -147,7 +147,7 @@ export default function BlotterAnalysisPage() {
         <Button
           variant={'secondary'}
           size={'lg'}
-          className='bg-white ring ring-border shadow-md'
+          className='ring ring-border shadow-md'
           onClick={() => router.push('/dashboard/upload-blotter')}
         >
           Cancel

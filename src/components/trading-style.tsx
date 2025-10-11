@@ -49,15 +49,18 @@ export default function TradingStyle() {
                   <div className='flex flex-col gap-1'>
                     <header className='flex items-center gap-3'>
                       <div className='flex items-center gap-2'>
-                        <TrendingUp size={15} className='text-yellow-700' />
+                        <TrendingUp
+                          size={15}
+                          className='text-amber-700 dark:text-amber-300'
+                        />
                         <h3 className='font-semibold'>{pattern.title}</h3>
                       </div>
                       <Badge
                         className={cn(
                           'rounded py-1 px-4',
                           pattern.type === 'weakness'
-                            ? 'bg-yellow-50 text-yellow-700 border border-yellow-500'
-                            : 'bg-green-50 text-green-700 border border-green-500'
+                            ? 'border border-amber-400 bg-amber-100 text-amber-800 dark:border-amber-300/40 dark:bg-amber-500/20 dark:text-amber-100'
+                            : 'border border-emerald-400 bg-emerald-100 text-emerald-700 dark:border-emerald-300/40 dark:bg-emerald-500/20 dark:text-emerald-100'
                         )}
                       >
                         {pattern.type}
@@ -69,7 +72,7 @@ export default function TradingStyle() {
                     <span className='text-sm'>Frequency:</span>
                     <div className='flex items-center gap-3'>
                       <Progress
-                        indicatorColor='bg-blue-700'
+                        indicatorColor='bg-blue-700 dark:bg-blue-400'
                         value={pattern.frequency}
                         className='w-14'
                       />
@@ -79,7 +82,7 @@ export default function TradingStyle() {
                     </div>
                   </div>
                   <Separator />
-                  <div className='flex gap-2 text-green-700 font-semibold'>
+                  <div className='flex gap-2 font-semibold text-emerald-600 dark:text-emerald-300'>
                     <Zap />
                     <span>{pattern.suggestion}</span>
                   </div>
@@ -101,7 +104,7 @@ export default function TradingStyle() {
                     <header className='flex justify-between items-center'>
                       <div className='flex flex-col gap-2'>
                         <h4 className='font-medium'>{opp.symbol}</h4>
-                        <div className='flex items-center gap-2 text-ring text-sm'>
+                        <div className='flex items-center gap-2 text-sm text-ring'>
                           <Button
                             variant={'outline'}
                             size={'sm'}
@@ -114,10 +117,13 @@ export default function TradingStyle() {
                       </div>
                       <div className='flex flex-col gap-1'>
                         <h5
-                          className={cn('font-semibold', {
-                            'text-green-700': opp.profit_potential > 0,
-                            'text-red-700': opp.profit_potential < 0,
-                          })}
+                          className={cn(
+                            'font-semibold',
+                            opp.profit_potential > 0 &&
+                              'text-emerald-600 dark:text-emerald-300',
+                            opp.profit_potential < 0 &&
+                              'text-red-600 dark:text-red-300'
+                          )}
                         >
                           {opp.profit_potential?.toLocaleString('en-US', {
                                 style: 'currency',
@@ -126,12 +132,13 @@ export default function TradingStyle() {
                         </h5>
                         {!isNaN(Number(opp.profit_percentage)) && (
                           <span
-                            className={cn('text-sm', {
-                              'text-green-700':
-                                Number(opp.profit_percentage) > 0,
-                              'text-red-700':
-                                Number(opp.profit_percentage) < 0,
-                            })}
+                            className={cn(
+                              'text-sm',
+                              Number(opp.profit_percentage) > 0 &&
+                                'text-emerald-600 dark:text-emerald-300',
+                              Number(opp.profit_percentage) < 0 &&
+                                'text-red-600 dark:text-red-300'
+                            )}
                           >
                             ({Number(opp.profit_percentage).toFixed(2)}%)
                           </span>
@@ -143,7 +150,7 @@ export default function TradingStyle() {
                         {opp.executed_price && (
                           <div className='flex items-center gap-2'>
                             <h4 className='text-ring'>Executed:</h4>
-                            <span className='text-black'>
+                            <span className='text-foreground'>
                               {opp.executed_price.toLocaleString('en-US', {
                                 style: 'currency',
                                 currency: 'USD',
@@ -151,10 +158,10 @@ export default function TradingStyle() {
                             </span>
                           </div>
                         )}
-                        <div className='flex items-center gap-2'>
-                          <h4 className='text-ring'>Optimal:</h4>
-                          <span className='text-black'>
-                            {opp.optimal_price?.toLocaleString('en-US', {
+                          <div className='flex items-center gap-2'>
+                            <h4 className='text-ring'>Optimal:</h4>
+                            <span className='text-foreground'>
+                              {opp.optimal_price?.toLocaleString('en-US', {
                                   style: 'currency',
                                   currency: 'USD',
                                 }) || 'N/A'}
@@ -163,7 +170,9 @@ export default function TradingStyle() {
                       </div>
                       <div className='flex items-center gap-2 text-sm'>
                         <h4 className='text-ring'>Optimal timing:</h4>
-                        <span className='text-black'>{opp.optimal_timing}</span>
+                        <span className='text-foreground'>
+                          {opp.optimal_timing}
+                        </span>
                       </div>
                       <p>{opp.reason}</p>
                     </div>
