@@ -10,7 +10,7 @@ import { PRICE_ALERT_BONDS } from '@/config/price-alert-bonds'
 
 type SelectedBondMap = Record<string, boolean>
 
-const createDefaultSelection = (bonds: string[]): SelectedBondMap =>
+const createDefaultSelection = (bonds: readonly string[]): SelectedBondMap =>
   bonds.reduce((acc, bond) => {
     acc[bond] = true
     return acc
