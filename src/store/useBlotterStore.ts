@@ -198,10 +198,11 @@ export const useBlotterStore = create<BlotterState>()(
         }),
       markFileSynced: (fileName, uploadedAt) =>
         set((state) => {
-          const files = state.files.map((file) =>
-            file.name === fileName
-              ? { ...file, source: 'cloud', uploadedAt }
-              : file,
+          const files = state.files.map(
+            (file): BlotterFile =>
+              file.name === fileName
+                ? { ...file, source: 'cloud', uploadedAt }
+                : file,
           )
           const selectedFile =
             state.selectedFile?.name === fileName
