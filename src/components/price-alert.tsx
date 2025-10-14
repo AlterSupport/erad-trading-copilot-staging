@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from './ui/card'
 import { Skeleton } from './ui/skeleton'
+import { PRICE_ALERT_BONDS } from '@/config/price-alert-bonds'
 
 interface PriceAlert {
   id: string
@@ -38,17 +39,6 @@ export default function PriceAlert() {
   }
 
   useEffect(() => {
-    const symbols = [
-      'US 10YR',
-      'US 30YR',
-      'NIGERIA DEC 2034',
-      'NIGERIA JAN 2049',
-      'NIGERIA SEP 2051',
-      'ANGOLA APR 2032',
-      'ANGOLA MAY 2048',
-      'ANGOLA NOV 2049',
-    ]
-
     const fetchPriceAlerts = async () => {
       setIsLoading(true)
 
@@ -60,7 +50,7 @@ export default function PriceAlert() {
       }
 
       try {
-        const promises = symbols.map(async (symbol) => {
+        const promises = PRICE_ALERT_BONDS.map(async (symbol) => {
           const response = await fetch(alertsUrl, {
             method: 'POST',
             headers: {

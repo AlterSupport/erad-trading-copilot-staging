@@ -17,8 +17,34 @@ const PLACEHOLDER_TIPS = [
   'Find issuance opportunities that match my mandate.',
 ]
 
+const TypingIndicator = () => (
+  <div
+    className='flex items-center gap-2 text-sm text-muted-foreground'
+    role='status'
+    aria-live='polite'
+  >
+    <span className='sr-only'>Assistant is typing</span>
+    <div className='flex items-center gap-1'>
+      <span
+        className='h-2.5 w-2.5 animate-bounce rounded-full bg-primary opacity-80'
+        style={{ animationDelay: '0ms' }}
+      />
+      <span
+        className='h-2.5 w-2.5 animate-bounce rounded-full bg-primary opacity-80'
+        style={{ animationDelay: '150ms' }}
+      />
+      <span
+        className='h-2.5 w-2.5 animate-bounce rounded-full bg-primary opacity-80'
+        style={{ animationDelay: '300ms' }}
+      />
+    </div>
+  </div>
+)
+
+const MAX_MESSAGES_BEFORE_RESET = 20
+
 export default function ChatInterface() {
-  const { messages, addMessage } = useChatStore()
+  const { messages, addMessage, clearMessages } = useChatStore()
   const [inputValue, setInputValue] = useState('')
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
   const chatContainerRef = useRef<HTMLDivElement>(null)
@@ -82,6 +108,9 @@ export default function ChatInterface() {
         content: m.content,
       }))
 
+    const nonTypingCount = messages.filter((m) => !m.isTyping).length
+    if (nonTypingCount >= MAX_MESSAGES_BEFORE_RESET) return
+
     const newMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
@@ -93,8 +122,9 @@ export default function ChatInterface() {
     const typingMessage: Message = {
       id: `typing_${Date.now()}`,
       type: 'ai',
-      content: 'Analyzing...',
+      content: '',
       timestamp: 'now',
+      isTyping: true,
     }
     addMessage(typingMessage)
 
@@ -134,6 +164,9 @@ export default function ChatInterface() {
   }
 
   const handleSend = async () => {
+    const nonTypingCount = messages.filter((m) => !m.isTyping).length
+    if (nonTypingCount >= MAX_MESSAGES_BEFORE_RESET) return
+
     await sendMessage(inputValue)
     setInputValue('')
   }
@@ -154,6 +187,15 @@ export default function ChatInterface() {
   const activePlaceholder =
     PLACEHOLDER_TIPS[placeholderIndex] ||
     'Ask for a pricing check, risk recap, or trade idea...'
+
+  const nonTypingCount = messages.filter((m) => !m.isTyping).length
+  const reachedMessageLimit = nonTypingCount >= MAX_MESSAGES_BEFORE_RESET
+
+  const handleResetChat = () => {
+    clearMessages()
+    setInputValue('')
+    isInitialScroll.current = true
+  }
 
   return (
     <div className='flex h-full min-h-0 w-full flex-1 items-stretch justify-center overflow-hidden bg-muted/40 px-4 py-6 dark:bg-background sm:px-8'>
@@ -227,14 +269,18 @@ export default function ChatInterface() {
                         : 'border border-border/60 bg-muted/40 text-foreground'
                     )}
                   >
-                    <div
-                      className={cn(
-                        'prose prose-sm max-w-none text-current sm:prose-base',
-                        'prose-headings:font-semibold prose-headings:text-current prose-p:leading-relaxed prose-strong:text-current prose-a:text-primary'
-                      )}
-                    >
-                      <ReactMarkdown>{message.content}</ReactMarkdown>
-                    </div>
+                    {message.isTyping ? (
+                      <TypingIndicator />
+                    ) : (
+                      <div
+                        className={cn(
+                          'prose prose-sm max-w-none text-current sm:prose-base',
+                          'prose-headings:font-semibold prose-headings:text-current prose-p:leading-relaxed prose-strong:text-current prose-a:text-primary'
+                        )}
+                      >
+                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                      </div>
+                    )}
                     <span
                       className={cn(
                         'mt-3 block text-[11px] font-medium tracking-wide uppercase',
@@ -243,7 +289,7 @@ export default function ChatInterface() {
                           : 'text-muted-foreground'
                       )}
                     >
-                      {message.timestamp}
+                      {message.isTyping ? 'Thinking…' : message.timestamp}
                     </span>
                   </div>
                 </div>
@@ -256,6 +302,23 @@ export default function ChatInterface() {
             onSubmit={handleSubmit}
             className='border-t border-border/60 bg-muted/20 px-5 py-5 sm:px-10 sm:py-6'
           >
+            {reachedMessageLimit && (
+              <div className='mb-4 flex flex-col gap-3 rounded-2xl border border-amber-400/60 bg-amber-50 px-4 py-3 text-center text-xs text-amber-800 shadow sm:flex-row sm:items-center sm:justify-between sm:text-sm'>
+                <div className='font-medium'>
+                  Conversation is getting long. Start a fresh chat to keep answers sharp.
+                </div>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={handleResetChat}
+                  className='border-amber-400 text-amber-900 hover:bg-amber-100'
+                  type='button'
+                >
+                  Refresh chat
+                </Button>
+              </div>
+            )}
+
             <div className='flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4'>
               <div className='w-full rounded-2xl border border-border/60 bg-background px-4 py-3 shadow-inner focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/60'>
                 <Textarea
@@ -268,14 +331,16 @@ export default function ChatInterface() {
               </div>
               <Button
                 type='submit'
-                disabled={!inputValue.trim()}
+                disabled={!inputValue.trim() || reachedMessageLimit}
                 className='w-full rounded-2xl px-6 py-3 text-base font-semibold sm:w-auto'
               >
                 Send
               </Button>
             </div>
             <p className='mt-2 text-[11px] text-muted-foreground sm:mt-3'>
-              Enter to send • Shift + Enter for a new line
+              {reachedMessageLimit
+                ? 'Reset the conversation to continue.'
+                : 'Enter to send • Shift + Enter for a new line'}
             </p>
           </form>
         </div>

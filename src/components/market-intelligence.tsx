@@ -12,6 +12,7 @@ import {
 import { Skeleton } from './ui/skeleton'
 import { Button } from './ui/button'
 import { RefreshCw } from 'lucide-react'
+import { PRICE_ALERT_BONDS } from '@/config/price-alert-bonds'
 
 interface MarketEvent {
   event_title: string
@@ -49,23 +50,12 @@ export default function MarketIntelligence() {
           throw new Error('Market intelligence URL is not configured.')
         }
 
-        const symbols = [
-          'US 10YR',
-          'US 30YR',
-          'NIGERIA DEC 2034',
-          'NIGERIA JAN 2049',
-          'NIGERIA SEP 2051',
-          'ANGOLA APR 2032',
-          'ANGOLA MAY 2048',
-          'ANGOLA NOV 2049',
-        ]
-
         const response = await fetch(newsUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ symbols }),
+          body: JSON.stringify({ symbols: PRICE_ALERT_BONDS }),
         })
 
         if (!response.ok) {
@@ -99,23 +89,12 @@ export default function MarketIntelligence() {
           throw new Error('Market intelligence URL is not configured.')
         }
 
-        const symbols = [
-          'US 10YR',
-          'US 30YR',
-          'NIGERIA DEC 2034',
-          'NIGERIA JAN 2049',
-          'NIGERIA SEP 2051',
-          'ANGOLA APR 2032',
-          'ANGOLA MAY 2048',
-          'ANGOLA NOV 2049',
-        ]
-
         const response = await fetch(newsUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ symbols }),
+          body: JSON.stringify({ symbols: PRICE_ALERT_BONDS }),
         })
 
         if (!response.ok) {

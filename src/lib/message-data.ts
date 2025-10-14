@@ -3,6 +3,7 @@ export interface Message {
   type: 'ai' | 'user'
   content: string
   timestamp: string
+  isTyping?: boolean
 }
 
 export const messagesData: Message[] = []

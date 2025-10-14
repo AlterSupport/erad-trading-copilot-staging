@@ -1,11 +1,13 @@
 'use client'
 
 import { useBlotterStore } from '@/store/useBlotterStore'
+import { useAuthStore } from '@/store/useAuthStore'
 import { cn } from '@/lib/utils'
 import { FileSpreadsheetIcon, Trash2, UploadCloud } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 import { Button } from './ui/button'
+import { saveLatestBlotterAnalysis } from '@/lib/blotter-storage'
 import {
   Card,
   CardContent,
@@ -37,10 +39,12 @@ export default function FileUploadComp({ className }: FileUploadCompProps) {
     setError,
     isUploading,
     setIsUploading,
+    markFileSynced,
   } = useBlotterStore()
   const [isDragging, setIsDragging] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const router = useRouter()
+  const { user } = useAuthStore()
 
   const onDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
@@ -153,6 +157,21 @@ export default function FileUploadComp({ className }: FileUploadCompProps) {
         const result = await response.json()
         setAnalysisResult(file.name, result)
         console.log('Blotter upload result:', result)
+
+        if (user) {
+          const uploadedAt = new Date().toISOString()
+          try {
+            await saveLatestBlotterAnalysis(user.uid, {
+              fileName: file.name,
+              analysis: result,
+              fileSize: file.size,
+              uploadedAt,
+            })
+            markFileSynced(file.name, uploadedAt)
+          } catch (syncError) {
+            console.error('Error syncing blotter analysis to Firestore:', syncError)
+          }
+        }
       } catch (error) {
         if (error instanceof Error) {
           setError(error.message || 'An unknown error occurred.')

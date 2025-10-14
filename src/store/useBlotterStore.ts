@@ -53,7 +53,7 @@ interface TradingStyle {
   }[]
 }
 
-interface AnalysisResult {
+export interface AnalysisResult {
   portfolio_summary: {
     total_trades: number
     buy_trades: number
@@ -81,38 +81,72 @@ interface AnalysisResult {
   trading_style: TradingStyle
 }
 
+export interface BlotterFile {
+  name: string
+  size: number
+  source: 'local' | 'cloud'
+  uploadedAt?: string
+}
+
 interface BlotterState {
-  files: File[]
-  selectedFile: File | null
+  files: BlotterFile[]
+  selectedFile: BlotterFile | null
   isUploading: boolean
   analysisResults: Record<string, AnalysisResult>
   error: string | null
   progress: number
-  addFile: (file: File) => void
+  hasHydratedFromCloud: boolean
+  addFile: (file: File | BlotterFile) => void
   removeFile: (fileName: string) => void
   selectFile: (fileName: string) => void
   setAnalysisResult: (fileName: string, result: AnalysisResult) => void
   setError: (error: string | null) => void
   setIsUploading: (isUploading: boolean) => void
   setProgress: (progress: number) => void
+  hydrateFromCloud: (payload: {
+    fileName: string
+    result: AnalysisResult
+    fileSize?: number
+    uploadedAt?: string
+  }) => void
+  markFileSynced: (fileName: string, uploadedAt?: string) => void
+  markCloudHydrated: () => void
+  reset: () => void
 }
+
+const createInitialState = () => ({
+  files: [] as BlotterFile[],
+  selectedFile: null,
+  isUploading: false,
+  analysisResults: {} as Record<string, AnalysisResult>,
+  error: null as string | null,
+  progress: 0,
+  hasHydratedFromCloud: false,
+})
 
 export const useBlotterStore = create<BlotterState>()(
   persist(
     (set) => ({
-      files: [],
-      selectedFile: null,
-      isUploading: false,
-      analysisResults: {},
-      error: null,
-      progress: 0,
-      addFile: (file) =>
-        set((state) => ({
-          files: [...state.files, file],
-          selectedFile: file,
-        })),
+      ...createInitialState(),
+      addFile: (file) => {
+        const fileMeta: BlotterFile =
+          'source' in file
+            ? file
+            : {
+                name: file.name,
+                size: file.size,
+                source: 'local',
+              }
+        set((state) => {
+          const existing = state.files.filter((item) => item.name !== fileMeta.name)
+          return {
+            files: [...existing, fileMeta],
+            selectedFile: fileMeta,
+          }
+        })
+      },
       removeFile: (fileName) =>
-        set((state: BlotterState) => {
+        set((state) => {
           const newFiles = state.files.filter((file) => file.name !== fileName)
           const newAnalysisResults = { ...state.analysisResults }
           delete newAnalysisResults[fileName]
@@ -129,7 +163,7 @@ export const useBlotterStore = create<BlotterState>()(
             state.files.find((file) => file.name === fileName) || null,
         })),
       setAnalysisResult: (fileName, result) =>
-        set((state: BlotterState) => ({
+        set((state) => ({
           analysisResults: {
             ...state.analysisResults,
             [fileName]: result,
@@ -139,6 +173,47 @@ export const useBlotterStore = create<BlotterState>()(
       setError: (error: string | null) => set({ error: error }),
       setIsUploading: (isUploading) => set({ isUploading }),
       setProgress: (progress) => set({ progress }),
+      hydrateFromCloud: ({ fileName, result, fileSize, uploadedAt }) =>
+        set((state) => {
+          const fileMeta: BlotterFile = {
+            name: fileName,
+            size: fileSize ?? 0,
+            source: 'cloud',
+            uploadedAt,
+          }
+          const files = [
+            ...state.files.filter((file) => file.name !== fileName),
+            fileMeta,
+          ]
+          return {
+            files,
+            selectedFile: fileMeta,
+            analysisResults: {
+              ...state.analysisResults,
+              [fileName]: result,
+            },
+            error: null,
+            hasHydratedFromCloud: true,
+          }
+        }),
+      markFileSynced: (fileName, uploadedAt) =>
+        set((state) => {
+          const files = state.files.map((file) =>
+            file.name === fileName
+              ? { ...file, source: 'cloud', uploadedAt }
+              : file,
+          )
+          const selectedFile =
+            state.selectedFile?.name === fileName
+              ? files.find((file) => file.name === fileName) || state.selectedFile
+              : state.selectedFile
+          return {
+            files,
+            selectedFile,
+          }
+        }),
+      markCloudHydrated: () => set({ hasHydratedFromCloud: true }),
+      reset: () => set(() => createInitialState()),
     }),
     {
       name: 'blotter-storage',

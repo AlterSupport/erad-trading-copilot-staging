@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils'
 import {
+  BarChart3,
   FileText,
   LayoutGridIcon,
   Menu,
@@ -23,6 +24,11 @@ const NavItems = [
     label: 'Dashboard',
     href: '/dashboard',
     icon: <LayoutGridIcon size={15} />,
+  },
+  {
+    label: 'Market Report',
+    href: '/dashboard/market-report',
+    icon: <BarChart3 size={15} />,
   },
   {
     label: 'Blotter Management',
