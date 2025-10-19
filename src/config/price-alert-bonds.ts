@@ -8,8 +8,8 @@ import {
   type MarketAssetPriceSource,
 } from './market-assets'
 
-export const PRICE_ALERT_BONDS = MARKET_ASSETS.filter((asset) =>
-  DEFAULT_MARKET_ASSET_IDS.includes(asset.id)
+export const PRICE_ALERT_BONDS = MARKET_ASSETS.filter(
+  (asset) => asset.category === 'Sovereign Bonds'
 ).map((asset) => asset.symbol)
 
 export type PriceAlertBond = string
