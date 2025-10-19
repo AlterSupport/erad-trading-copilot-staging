@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
 import {
   Card,
@@ -11,8 +11,13 @@ import {
 } from './ui/card'
 import { Skeleton } from './ui/skeleton'
 import { Button } from './ui/button'
+import { Badge } from './ui/badge'
 import { RefreshCw } from 'lucide-react'
-import { PRICE_ALERT_BONDS } from '@/config/price-alert-bonds'
+import { useMarketAssetsStore } from '@/store/useMarketAssetsStore'
+import {
+  MARKET_ASSETS_BY_ID,
+  type MarketAsset,
+} from '@/config/market-assets'
 
 interface MarketEvent {
   event_title: string
@@ -25,6 +30,13 @@ interface MarketEvent {
 export default function MarketIntelligence() {
   const [events, setEvents] = useState<MarketEvent[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const selectedAssetIds = useMarketAssetsStore((state) => state.selectedAssetIds)
+
+  const selectedAssets = useMemo<MarketAsset[]>(() => {
+    return selectedAssetIds
+      .map((id) => MARKET_ASSETS_BY_ID[id])
+      .filter((asset): asset is MarketAsset => Boolean(asset))
+  }, [selectedAssetIds])
 
   const sentimentVariants: Record<MarketEvent['sentiment'], string> = {
     POSITIVE:
@@ -41,107 +53,114 @@ export default function MarketIntelligence() {
     NEUTRAL: 'text-muted-foreground',
   }
 
-  useEffect(() => {
-    const fetchMarketNews = async () => {
-      setIsLoading(true)
-      try {
-        const newsUrl = process.env.NEXT_PUBLIC_MARKET_INTELLIGENCE_URL
-        if (!newsUrl) {
-          throw new Error('Market intelligence URL is not configured.')
-        }
+  const fetchMarketNews = useCallback(async () => {
+    const newsUrl = process.env.NEXT_PUBLIC_MARKET_INTELLIGENCE_URL
 
-        const response = await fetch(newsUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ symbols: PRICE_ALERT_BONDS }),
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch market news.')
-        }
-
-        const data = await response.json()
-        if (data && Array.isArray(data.market_events)) {
-          setEvents(data.market_events)
-        } else {
-          setEvents([])
-        }
-      } catch (error) {
-        console.error('Error fetching market news:', error)
-        setEvents([])
-      } finally {
-        setIsLoading(false)
-      }
+    if (!newsUrl) {
+      console.error('Market intelligence URL is not configured.')
+      setEvents([])
+      setIsLoading(false)
+      return
     }
 
+    if (selectedAssets.length === 0) {
+      setEvents([])
+      setIsLoading(false)
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch(newsUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          symbols: selectedAssets.map((asset) => asset.symbol),
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch market news.')
+      }
+
+      const data = await response.json()
+      if (data && Array.isArray(data.market_events)) {
+        setEvents(data.market_events as MarketEvent[])
+      } else {
+        setEvents([])
+      }
+    } catch (error) {
+      console.error('Error fetching market news:', error)
+      setEvents([])
+    } finally {
+      setIsLoading(false)
+    }
+  }, [selectedAssets])
+
+  useEffect(() => {
     fetchMarketNews()
-  }, [])
+  }, [fetchMarketNews])
 
   const handleRefresh = () => {
-    // Manually trigger the fetch function
-    const fetchMarketNews = async () => {
-      setIsLoading(true)
-      try {
-        const newsUrl = process.env.NEXT_PUBLIC_MARKET_INTELLIGENCE_URL
-        if (!newsUrl) {
-          throw new Error('Market intelligence URL is not configured.')
-        }
-
-        const response = await fetch(newsUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ symbols: PRICE_ALERT_BONDS }),
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch market news.')
-        }
-
-        const data = await response.json()
-        if (data && Array.isArray(data.market_events)) {
-          setEvents(data.market_events)
-        } else {
-          setEvents([])
-        }
-      } catch (error) {
-        console.error('Error fetching market news:', error)
-        setEvents([])
-      } finally {
-        setIsLoading(false)
-      }
-    }
     fetchMarketNews()
   }
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className='flex flex-row items-center justify-between'>
         <div>
           <CardTitle>Market Intelligence</CardTitle>
           <CardDescription>
             Real-time news and analysis from global markets.
           </CardDescription>
         </div>
-        <Button onClick={handleRefresh} variant="outline" size="icon">
-          <RefreshCw className="h-4 w-4" />
+        <Button onClick={handleRefresh} variant='outline' size='icon'>
+          <RefreshCw className='h-4 w-4' />
         </Button>
       </CardHeader>
-      <CardContent>
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+      <CardContent className='space-y-4'>
+        <div>
+          <p className='text-xs font-medium uppercase text-muted-foreground'>
+            Focus assets
+          </p>
+          <div className='mt-2 flex flex-wrap gap-2'>
+            {selectedAssets.length > 0 ? (
+              selectedAssets.map((asset) => (
+                <Badge key={asset.id} variant='outline'>
+                  {asset.label}
+                </Badge>
+              ))
+            ) : (
+              <span className='text-xs text-muted-foreground'>
+                Select assets to tailor market intelligence updates.
+              </span>
+            )}
+          </div>
+        </div>
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
           {isLoading && (
             <>
-              <Skeleton className="h-48 w-full rounded-md" />
-              <Skeleton className="h-48 w-full rounded-md" />
-              <Skeleton className="h-48 w-full rounded-md" />
+              <Skeleton className='h-48 w-full rounded-md' />
+              <Skeleton className='h-48 w-full rounded-md' />
+              <Skeleton className='h-48 w-full rounded-md' />
             </>
           )}
-          {!isLoading && events.length === 0 && (
-            <p className="col-span-full">No market events found for your portfolio.</p>
+          {!isLoading && selectedAssets.length === 0 && (
+            <p className='col-span-full text-sm text-muted-foreground'>
+              Choose at least one asset in the price alerts section to receive
+              focused news here.
+            </p>
           )}
+          {!isLoading &&
+            selectedAssets.length > 0 &&
+            events.length === 0 && (
+              <p className='col-span-full'>
+                No market events found for the selected assets.
+              </p>
+            )}
           {!isLoading &&
             events.map((event, index) => (
               <div

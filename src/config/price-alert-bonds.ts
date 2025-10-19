@@ -1,12 +1,25 @@
-export const PRICE_ALERT_BONDS = [
-  'US 10YR',
-  'US 30YR',
-  'NIGERIA DEC 2034',
-  'NIGERIA JAN 2049',
-  'NIGERIA SEP 2051',
-  'ANGOLA APR 2032',
-  'ANGOLA MAY 2048',
-  'ANGOLA NOV 2049',
-] as const
+import {
+  DEFAULT_MARKET_ASSET_IDS,
+  MARKET_ASSETS,
+  MARKET_ASSET_GROUPS,
+  MARKET_ASSETS_BY_ID,
+  type MarketAsset,
+  type MarketAssetMetric,
+  type MarketAssetPriceSource,
+} from './market-assets'
 
-export type PriceAlertBond = (typeof PRICE_ALERT_BONDS)[number]
+export const PRICE_ALERT_BONDS = MARKET_ASSETS.filter((asset) =>
+  DEFAULT_MARKET_ASSET_IDS.includes(asset.id)
+).map((asset) => asset.symbol)
+
+export type PriceAlertBond = string
+
+export {
+  DEFAULT_MARKET_ASSET_IDS,
+  MARKET_ASSETS,
+  MARKET_ASSET_GROUPS,
+  MARKET_ASSETS_BY_ID,
+  type MarketAsset,
+  type MarketAssetMetric,
+  type MarketAssetPriceSource,
+}
