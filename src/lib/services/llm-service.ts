@@ -10,6 +10,12 @@ interface ChatMessage {
   content: string;
 }
 
+interface BlotterAttachmentPayload {
+  fileName: string;
+  fileType: string;
+  fileContent: string;
+}
+
 interface FulfillmentMessage {
   text: {
     text: string[];
@@ -30,15 +36,24 @@ export class LLMService {
     this.config = config;
   }
 
-  async chat(currentUserInput: string, chatHistory: ChatMessage[]): Promise<ChatResponse> {
+  async chat(
+    currentUserInput: string,
+    chatHistory: ChatMessage[],
+    blotterAttachment?: BlotterAttachmentPayload | null
+  ): Promise<ChatResponse> {
     try {
+      const payload: Record<string, unknown> = { currentUserInput, chatHistory };
+      if (blotterAttachment) {
+        payload.blotterAttachment = blotterAttachment;
+      }
+
       const response = await fetch(this.config.baseUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(this.config.apiKey && { 'x-api-key': this.config.apiKey })
         },
-        body: JSON.stringify({ currentUserInput, chatHistory }),
+        body: JSON.stringify(payload),
         signal: AbortSignal.timeout(this.config.timeout)
       });
 
@@ -63,3 +78,4 @@ const llmService = new LLMService({
 });
 
 export default llmService;
+export type { BlotterAttachmentPayload };

@@ -2,11 +2,12 @@
 
 import { Message } from '@/lib/message-data'
 import { useChatStore } from '@/store/useChatStore'
-import llmService from '@/lib/services/llm-service'
+import llmService, { BlotterAttachmentPayload } from '@/lib/services/llm-service'
 import { cn } from '@/lib/utils'
-import { Zap } from 'lucide-react'
+import { Zap, Paperclip, X } from 'lucide-react'
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
+import type { Components } from 'react-markdown'
 import { Button } from './ui/button'
 import { Textarea } from './ui/textarea'
 
@@ -16,6 +17,9 @@ const PLACEHOLDER_TIPS = [
   'Stress test the portfolio for a 75 bps rates shock.',
   'Find issuance opportunities that match my mandate.',
 ]
+
+const ALLOWED_ATTACHMENT_TYPES = ['csv', 'xlsx', 'json']
+const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024 // 10 MB
 
 const TypingIndicator = () => (
   <div
@@ -43,13 +47,27 @@ const TypingIndicator = () => (
 
 const MAX_MESSAGES_BEFORE_RESET = 20
 
+const markdownComponents: Components = {
+  a: ({ node, ...props }) => (
+    <a
+      {...props}
+      target='_blank'
+      rel='noopener noreferrer'
+      className='text-primary underline break-words hover:text-primary/80'
+    />
+  ),
+}
+
 export default function ChatInterface() {
   const { messages, addMessage, clearMessages } = useChatStore()
   const [inputValue, setInputValue] = useState('')
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
+  const [selectedAttachment, setSelectedAttachment] = useState<File | null>(null)
+  const [attachmentError, setAttachmentError] = useState<string | null>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const bottomMarkerRef = useRef<HTMLDivElement>(null)
   const isInitialScroll = useRef(true)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   useLayoutEffect(() => {
     const node = chatContainerRef.current
@@ -98,8 +116,85 @@ export default function ChatInterface() {
     return () => window.clearInterval(interval)
   }, [inputValue])
 
-  const sendMessage = async (content: string) => {
-    if (!content.trim()) return
+  const validateAttachment = (file: File): string | null => {
+    const extension = file.name.split('.').pop()?.toLowerCase() || ''
+    if (!ALLOWED_ATTACHMENT_TYPES.includes(extension)) {
+      return 'Unsupported file type. Please upload CSV, XLSX, or JSON.'
+    }
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      return 'File size exceeds the 10 MB limit.'
+    }
+    return null
+  }
+
+  const readFileAsBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        const result = reader.result
+        if (!result || typeof result !== 'string') {
+          reject(new Error('Failed to read file.'))
+          return
+        }
+        const base64 = result.includes(',') ? result.split(',')[1] : result
+        resolve(base64)
+      }
+      reader.onerror = () => reject(reader.error ?? new Error('Failed to read file.'))
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const clearAttachment = () => {
+    setSelectedAttachment(null)
+    setAttachmentError(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const handleAttachmentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const error = validateAttachment(file)
+    if (error) {
+      setAttachmentError(error)
+      setSelectedAttachment(null)
+      event.target.value = ''
+      return
+    }
+
+    setAttachmentError(null)
+    setSelectedAttachment(file)
+  }
+
+  const handleAttachmentButtonClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleRemoveAttachment = () => {
+    clearAttachment()
+  }
+
+  const sendMessage = async (content: string): Promise<boolean> => {
+    if (!content.trim() && !selectedAttachment) return false
+
+    let blotterAttachment: BlotterAttachmentPayload | undefined
+    if (selectedAttachment) {
+      try {
+        const base64 = await readFileAsBase64(selectedAttachment)
+        const fileType = selectedAttachment.name.split('.').pop()?.toLowerCase() || ''
+        blotterAttachment = {
+          fileName: selectedAttachment.name,
+          fileType,
+          fileContent: base64,
+        }
+      } catch (error) {
+        console.error('Failed to prepare attachment:', error)
+        setAttachmentError('Failed to read the attachment. Please try again.')
+        return false
+      }
+    }
 
     const chatHistory = useChatStore
       .getState()
@@ -109,12 +204,15 @@ export default function ChatInterface() {
       }))
 
     const nonTypingCount = messages.filter((m) => !m.isTyping).length
-    if (nonTypingCount >= MAX_MESSAGES_BEFORE_RESET) return
+    if (nonTypingCount >= MAX_MESSAGES_BEFORE_RESET) return false
+    const displayContent = selectedAttachment
+      ? `${content}\n\n[Attached blotter: ${selectedAttachment.name}]`
+      : content
 
     const newMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: content,
+      content: displayContent,
       timestamp: 'now',
     }
     addMessage(newMessage)
@@ -129,13 +227,17 @@ export default function ChatInterface() {
     addMessage(typingMessage)
 
     try {
-      const response = await llmService.chat(content, chatHistory)
+      const response = await llmService.chat(content, chatHistory, blotterAttachment)
 
       const { messages } = useChatStore.getState()
       const filteredMessages = messages.filter(
         (msg) => msg.id !== typingMessage.id
       )
       useChatStore.setState({ messages: filteredMessages })
+
+      if (selectedAttachment) {
+        clearAttachment()
+      }
 
       const aiResponse: Message = {
         id: Date.now().toString(),
@@ -144,6 +246,7 @@ export default function ChatInterface() {
         timestamp: 'now',
       }
       addMessage(aiResponse)
+      return true
     } catch (error) {
       const { messages } = useChatStore.getState()
       const filteredMessages = messages.filter(
@@ -160,6 +263,7 @@ export default function ChatInterface() {
         timestamp: 'now',
       }
       addMessage(errorResponse)
+      return false
     }
   }
 
@@ -167,8 +271,10 @@ export default function ChatInterface() {
     const nonTypingCount = messages.filter((m) => !m.isTyping).length
     if (nonTypingCount >= MAX_MESSAGES_BEFORE_RESET) return
 
-    await sendMessage(inputValue)
-    setInputValue('')
+    const sent = await sendMessage(inputValue)
+    if (sent) {
+      setInputValue('')
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -180,7 +286,7 @@ export default function ChatInterface() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!inputValue.trim()) return
+    if (!inputValue.trim() && !selectedAttachment) return
     await handleSend()
   }
 
@@ -195,6 +301,7 @@ export default function ChatInterface() {
     clearMessages()
     setInputValue('')
     isInitialScroll.current = true
+    clearAttachment()
   }
 
   return (
@@ -278,7 +385,9 @@ export default function ChatInterface() {
                           'prose-headings:font-semibold prose-headings:text-current prose-p:leading-relaxed prose-strong:text-current prose-a:text-primary'
                         )}
                       >
-                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                        <ReactMarkdown components={markdownComponents}>
+                          {message.content}
+                        </ReactMarkdown>
                       </div>
                     )}
                     <span
@@ -328,10 +437,45 @@ export default function ChatInterface() {
                   placeholder={activePlaceholder}
                   className='h-24 min-h-[96px] border-0 bg-transparent p-0 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 sm:h-24 sm:text-base'
                 />
+                <div className='mt-3 flex flex-col gap-2 text-xs sm:flex-row sm:items-center sm:justify-between sm:text-sm'>
+                  <div className='flex items-center gap-2'>
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='sm'
+                      onClick={handleAttachmentButtonClick}
+                      className='gap-2 px-3'
+                    >
+                      <Paperclip className='h-4 w-4' /> Attach blotter
+                    </Button>
+                    {selectedAttachment && (
+                      <div className='flex items-center gap-2 rounded-full bg-muted/60 px-3 py-1 text-muted-foreground'>
+                        <span className='max-w-[160px] truncate'>{selectedAttachment.name}</span>
+                        <button
+                          type='button'
+                          onClick={handleRemoveAttachment}
+                          className='text-muted-foreground transition hover:text-foreground'
+                        >
+                          <X className='h-3.5 w-3.5' />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  {attachmentError && (
+                    <p className='text-destructive'>{attachmentError}</p>
+                  )}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type='file'
+                  accept='.csv,.xlsx,.json'
+                  onChange={handleAttachmentChange}
+                  className='hidden'
+                />
               </div>
               <Button
                 type='submit'
-                disabled={!inputValue.trim() || reachedMessageLimit}
+                disabled={(!inputValue.trim() && !selectedAttachment) || reachedMessageLimit}
                 className='w-full rounded-2xl px-6 py-3 text-base font-semibold sm:w-auto'
               >
                 Send
@@ -340,7 +484,7 @@ export default function ChatInterface() {
             <p className='mt-2 text-[11px] text-muted-foreground sm:mt-3'>
               {reachedMessageLimit
                 ? 'Reset the conversation to continue.'
-                : 'Enter to send • Shift + Enter for a new line'}
+                : 'Enter to send • Shift + Enter for a new line • Attach CSV/XLSX/JSON for blotter analysis'}
             </p>
           </form>
         </div>
