@@ -271,9 +271,13 @@ export default function ChatInterface() {
     const nonTypingCount = messages.filter((m) => !m.isTyping).length
     if (nonTypingCount >= MAX_MESSAGES_BEFORE_RESET) return
 
-    const sent = await sendMessage(inputValue)
-    if (sent) {
-      setInputValue('')
+    const messageToSend = inputValue
+    if (!messageToSend.trim() && !selectedAttachment) return
+
+    setInputValue('')
+    const sent = await sendMessage(messageToSend)
+    if (!sent) {
+      setInputValue(messageToSend)
     }
   }
 
